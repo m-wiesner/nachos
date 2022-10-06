@@ -20,7 +20,8 @@ def main():
     parser.add_argument('--splitter', type=str,
         choices=[
             'SpectralClusteringSplitter',
-            'BoxSplitter',
+            'GomoryHuSplitter',
+            'RandomFeatureSplitter',
         ],
     )
     args, leftover = parser.parse_known_args()
@@ -28,7 +29,6 @@ def main():
     splitter_class.add_args(parser)
     args = parser.parse_args()
     
-    splitter = splitter_class.from_args(args)
     recordings = {}
     with open(args.features, 'r') as f:
         for l in f:
@@ -39,6 +39,7 @@ def main():
                 features_list.append(set(f.split(',')))
             recordings[fid] = features_list
 
+    splitter = splitter_class.from_args(args)
     splitter.split(recordings)
     splitter.compute_metrics(fname=args.log)
     splitter.clusters_to_file(args.output)

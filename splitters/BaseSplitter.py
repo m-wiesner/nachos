@@ -40,8 +40,8 @@ class BaseSplitter(object):
                             cluster_features[k][feat_idx] = []
                         cluster_features[k][feat_idx].append(feat)
                 cluster_size = len(cluster_recordings[k])
-                cluster_percent = cluster_size / len(self.recordings)
-                print(f"Cluster {k} len = {cluster_size} ({cluster_percent}%)",
+                cluster_percent = 100 * cluster_size / len(self.recordings)
+                print(f"Cluster {k} len = {cluster_size} ({cluster_percent:0.2f}%)",
                     file=f
                 )
 
@@ -65,5 +65,5 @@ class BaseSplitter(object):
                         
                         print(f"(cluster j, cluster k, feat) "
                             f"({j}, {k}, {self.feature_names[feat_idx]}) "
-                            f"--> {self.metrics[feat_idx]}={score}", file=f
+                            f"--> {self.metrics[feat_idx]}={score:0.2f}", file=f
                         )

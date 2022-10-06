@@ -1,2 +1,3 @@
 from .SpectralClusteringSplitter import SpectralClusteringSplitter
-from .BoxSplitter import BoxSplitter
+from .GomoryHuSplitter import GomoryHuSplitter
+from .RandomFeatureSplitter import RandomFeatureSplitter
