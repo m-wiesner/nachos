@@ -17,6 +17,7 @@ class RandomFeatureSplitter(BaseSplitter):
         parser.add_argument('--heldout-min', type=float, default=0.01)
         parser.add_argument('--max-iter', type=int, default=2)
         parser.add_argument('--tol', type=float, default=0.05)
+        parser.add_argument('--seed', type=int, default=0) 
 
     @classmethod
     def from_args(cls, args):
@@ -31,11 +32,12 @@ class RandomFeatureSplitter(BaseSplitter):
             tol=args.tol,
             max_iter=args.max_iter,
             heldout_min=0.01,
+            seed=args.seed,
         )
     
     def __init__(self, num_features, train_ratio, heldout_ratio,
         feature_names=None, metrics=None, tol=0.05, max_iter=1000,
-        heldout_min=0.01, 
+        heldout_min=0.01, seed=0, 
     ):
         self.metrics = ['overlap' for f in range(num_features)]
         if metrics is not None:
@@ -50,8 +52,10 @@ class RandomFeatureSplitter(BaseSplitter):
         self.tol = tol
         self.max_iter = max_iter
         self.heldout_min = heldout_min
+        self.seed = seed 
     
     def split(self, recordings):
+        random.seed(self.seed)
         fids = sorted(recordings.keys())
         self.fids = fids
         self.recordings = recordings
