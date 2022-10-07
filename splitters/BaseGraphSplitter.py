@@ -23,6 +23,10 @@ class SimFuns(object):
     def set_intersect(f, g):
         return len(f.intersection(g))
 
+    @staticmethod
+    def greater_than(f, g):
+        return int(f > g)
+
 
 class BaseGraphSplitter(BaseSplitter):
     @staticmethod
@@ -33,6 +37,10 @@ class BaseGraphSplitter(BaseSplitter):
     @classmethod
     def from_args(cls, args):
         simfuns = [getattr(SimFuns, s) for s in args.simfuns]
+        if SimFuns.greater_than in simfuns:
+            raise ValueError("The Affinity matrix is undirected and the > "
+                " similarity function is directional."
+            )
         return cls(
             simfuns,
             args.num_splits,

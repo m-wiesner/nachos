@@ -22,6 +22,7 @@ def main():
             'SpectralClusteringSplitter',
             'GomoryHuSplitter',
             'RandomFeatureSplitter',
+            'MinNodeCutSplitter',
         ],
     )
     args, leftover = parser.parse_known_args()

@@ -3,7 +3,10 @@
 # Copyright 2022  Johns Hopkins University (Author: Matthew Wiesner)
 # Apache 2.0
 from .BaseSplitter import BaseSplitter
+from .BaseGraphSplitter import SimFuns
 import random
+import numpy as np
+import networkx as nx
 
 
 class RandomFeatureSplitter(BaseSplitter):
@@ -15,14 +18,16 @@ class RandomFeatureSplitter(BaseSplitter):
         parser.add_argument('--train-ratio', type=float, default=0.8)
         parser.add_argument('--heldout-ratio', type=float, default=0.1)
         parser.add_argument('--heldout-min', type=float, default=0.01)
-        parser.add_argument('--max-iter', type=int, default=2)
+        parser.add_argument('--max-iter', type=int, default=100000)
         parser.add_argument('--tol', type=float, default=0.05)
         parser.add_argument('--seed', type=int, default=0) 
+        parser.add_argument('--simfuns', nargs='+', type=str)
 
     @classmethod
     def from_args(cls, args):
         with open(args.features, 'r', encoding='utf-8') as f:
             num_features = len(f.readline().strip().split()) - 1
+        simfuns = [getattr(SimFuns, s) for s in args.simfuns]
         return cls(
             num_features,
             args.train_ratio,
@@ -32,12 +37,13 @@ class RandomFeatureSplitter(BaseSplitter):
             tol=args.tol,
             max_iter=args.max_iter,
             heldout_min=0.01,
+            simfuns=simfuns,
             seed=args.seed,
         )
     
     def __init__(self, num_features, train_ratio, heldout_ratio,
         feature_names=None, metrics=None, tol=0.05, max_iter=1000,
-        heldout_min=0.01, seed=0, 
+        heldout_min=0.01, simfuns=None, seed=0, 
     ):
         self.metrics = ['overlap' for f in range(num_features)]
         if metrics is not None:
@@ -52,6 +58,7 @@ class RandomFeatureSplitter(BaseSplitter):
         self.tol = tol
         self.max_iter = max_iter
         self.heldout_min = heldout_min
+        self.simfuns = simfuns
         self.seed = seed 
     
     def split(self, recordings):
@@ -91,6 +98,16 @@ class RandomFeatureSplitter(BaseSplitter):
         ):
             train, heldout = self.draw_random_split(feats, recordings_set)
             train_ratio = len(train) / len(fids)
+            
+            # If the training set is emptpy there is a good chance that the
+            # the relationships between data form a complete graph. In a
+            # complete graph, there is no node cut that will result in 2+
+            # connected components. Hence, there is no point in running the
+            # rest of this algorithm. We check to see if the affinity matrix
+            # corresponding to the graph of the data is complete.
+            if train_ratio == 0 and iter_num == 0:
+                self.check_complete()    
+            
             heldout_ratio = len(heldout) / len(fids)
             train_score = abs(train_ratio - self.train_ratio)
             heldout_score = abs(heldout_ratio - self.heldout_ratio)
@@ -146,4 +163,25 @@ class RandomFeatureSplitter(BaseSplitter):
         train = set.intersection(*feat_subsets)
         held_out = set.intersection(*feat_subsets_complement)
         return train, held_out
-        
+
+    def check_complete(self):
+        triu_idxs = np.triu_indices(len(self.recordings), k=1)
+        G = nx.Graph()
+        for i, j in zip(triu_idxs[0], triu_idxs[1]):
+            iterator = zip(
+                self.recordings[self.fids[i]],
+                self.recordings[self.fids[j]],
+                self.simfuns,
+            )
+            sims = np.array([fun(f, g) for f, g, fun in iterator])
+            capacity = np.dot(np.ones(len(self.feature_names),), sims)
+            if capacity > 0:
+                G.add_edge(i, j, capacity=capacity)
+        is_complete = True
+        for n in range(len(G)):
+            if G.degree(n) != len(G) - 1:
+                is_complete = False
+        if is_complete:
+            raise ValueError("A complete graph was detected. This "
+                "algorithm does not work on complete graphs."
+            )  
