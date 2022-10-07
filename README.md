@@ -6,15 +6,39 @@ metadata may include features such as the speaker(s) present in a recording,
 the gender of the speaker, the duration of the recording, the prompt spoken, 
 the room in which it was spoken etc...
 
-We support one method called the SpectralClusteringSplitter, which creates an
-affinity matrix for the provided feature file and creates the specified number
-of clusters from the affinity matrix. This corresponds to a normalized min-cut
-problem. For the SpectralClusteringSplitter, we support multilabel features
-if the overlap similarity function if used.
+## What you need to do
 
-The list of splitters we hope to support can be found in splitters/
+Create a file representing your corpus that has a column for the id of each
+element of the corpus (i.e., the one you are trying to split), and then a
+column for each feature that is relevant for creating the split. This could be
+prompt, speaker ID, etc..
 
-Below is an example of how to run the method.
+We support multiple splitting methods, (splitters), which appear to be better
+suited for different tasks.
+
+SpectralClusteringSplitter -- when the data are such that each item is similar
+to all other, i.e., it forms a complete graph, then there are no heldout sets
+which can be formed from this data that don't overlap in some feature of
+interest. In this case, the problem of finding a heldout set is relaxed and
+we instead try to find two sets of similar size that have minimal overlap. In
+practive we have found that the one of the splits tends to be somewhat larger
+and could easily serve as the training set.
+
+
+RandomFeatureSplitter -- when the data are such that each item is similar to
+other items, which are in term similar to other, until every item in the data
+has been seen, then this creates a connected graph, i.e., having a single
+component. When we want to create a held-out set using these data, especially
+if the training set is somewhat smaller and the heldout sets are larger, the
+RandomFeatureSplitter is a good choice.
+
+
+MinNodeCutSplitter -- when the data are as in the RandomFeatureSplitter case, 
+but we want to create the largest possible cluster, this method may be better.  
+
+The list of splitters we support can be found in splitters/
+
+Below are example of how to split data sets.
 
 MinNodeCutSplitter
 ```
