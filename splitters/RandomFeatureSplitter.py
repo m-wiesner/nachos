@@ -7,6 +7,7 @@ from .BaseGraphSplitter import SimFuns
 import random
 import numpy as np
 import networkx as nx
+from tqdm import tqdm
 
 
 class RandomFeatureSplitter(BaseSplitter):
@@ -89,13 +90,12 @@ class RandomFeatureSplitter(BaseSplitter):
         train_ratio, heldout_ratio, iter_num = 999., 999., 0
         best_score = 999.
         recordings_set = set(recordings.keys())
-        while (
-            (
-                abs(train_ratio - self.train_ratio) > self.tol or
-                abs(heldout_ratio - self.heldout_ratio) > self.tol
-            )
-            and iter_num < self.max_iter
-        ):
+        for iter_num in tqdm(range(self.max_iter)):
+            if (
+                abs(train_ratio - self.train_ratio) <= self.tol and
+                abs(heldout_ratio - self.heldout_ratio) <= self.tol
+            ):
+                break 
             train, heldout = self.draw_random_split(feats, recordings_set)
             train_ratio = len(train) / len(fids)
             
