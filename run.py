@@ -42,7 +42,8 @@ def main():
 
     splitter = splitter_class.from_args(args)
     splitter.split(recordings)
-    splitter.compute_metrics(fname=args.log)
+    if args.log is not None:
+        splitter.compute_metrics(fname=args.log)
     splitter.clusters_to_file(args.output)
 
 
