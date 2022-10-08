@@ -22,6 +22,7 @@ def main():
             'SpectralClusteringSplitter',
             'GomoryHuSplitter',
             'RandomFeatureSplitter',
+            'GreedyFeatureSplitter',
             'MinNodeCutSplitter',
         ],
     )

@@ -96,7 +96,7 @@ class RandomFeatureSplitter(BaseSplitter):
                 abs(heldout_ratio - self.heldout_ratio) <= self.tol
             ):
                 break 
-            train, heldout = self.draw_random_split(feats, recordings_set)
+            train, heldout, _, _ = self.draw_random_split(feats, recordings_set)
             train_ratio = len(train) / len(fids)
             
             # If the training set is emptpy there is a good chance that the
@@ -124,7 +124,6 @@ class RandomFeatureSplitter(BaseSplitter):
                         *[recordings[i][feat_idx] for i in heldout]
                     )
                     assert len(train_features.intersection(heldout_features)) == 0
-            iter_num += 1
         self.clustering = []
         for i in fids:
             if i in best_split[0][0]: # train
@@ -162,7 +161,7 @@ class RandomFeatureSplitter(BaseSplitter):
             feat_subsets_complement.append(feat_subset_complement)
         train = set.intersection(*feat_subsets)
         held_out = set.intersection(*feat_subsets_complement)
-        return train, held_out
+        return train, held_out, feat_subsets, feat_subsets_complement
 
     def check_complete(self):
         triu_idxs = np.triu_indices(len(self.recordings), k=1)
