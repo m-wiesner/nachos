@@ -46,9 +46,14 @@ class BaseSplitter(object):
                 )
 
             for j in range(self.num_clusters):
+                if len(cluster_recordings[j]) == 0:
+                    continue
                 for k in range(self.num_clusters):
                     if j == k:
                         continue
+                    if len(cluster_recordings[k]) == 0:
+                        continue
+              
                     for feat_idx in range(len(cluster_features[k])):
                         if self.metrics[feat_idx] == 'overlap':
                             score = sum(

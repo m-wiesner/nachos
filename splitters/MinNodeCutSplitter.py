@@ -53,7 +53,7 @@ class MinNodeCutSplitter(BaseGraphSplitter):
             metrics=args.metrics,
             tol=args.tol,
             max_iter=args.max_iter,
-            heldout_min=0.01,
+            heldout_min=args.heldout_min,
             simfuns=simfuns,
             feature_weights=args.feature_weights,
             seed=args.seed,
@@ -80,6 +80,16 @@ class MinNodeCutSplitter(BaseGraphSplitter):
         self.fids = fids
         self.recordings = recordings
        
+        feats = {}
+        for fid in fids:
+            for idx, feat_set in enumerate(recordings[fid]):
+                if idx not in feats:
+                    feats[idx] = {}
+                for feat in feat_set:
+                    if feat not in feats[idx]:
+                        feats[idx][feat] = []
+                    feats[idx][feat].append(fid)
+
         train_ratio, heldout_ratio = 999., 999.
         best_score = 999.
         recordings_set = set(recordings.keys())
@@ -125,14 +135,24 @@ class MinNodeCutSplitter(BaseGraphSplitter):
                     assert len(train_features.intersection(heldout_features)) == 0
             iter_num += 1
         self.clustering = []
+        d2 = []
         for i in fids:
-            if i in best_split[0][0]: # train
+            if (i not in best_split[0][0]) and (i not in best_split[1][0]):
+                d2.append(i)
+        other_test_sets = self.make_overlapping_test_sets(
+            best_split[0][0], d2, feats
+        )
+        for i in fids:
+            if i in best_split[0][0]:
                 self.clustering.append(0)
             elif i in best_split[1][0]:
                 self.clustering.append(1)
-            else:
-                self.clustering.append(2)
-        self.num_clusters = 3
+            for j in other_test_sets:
+                # Should be mututally exclusive
+                if i in other_test_sets[j]:
+                    self.clustering.append(j+2)
+                    continue;
+        self.num_clusters = 2**(len(feats)) + 2
 
     def draw_random_node_cut(self, G):
         nodes_are_adjacent = True
@@ -162,3 +182,43 @@ class MinNodeCutSplitter(BaseGraphSplitter):
             else:
                 heldout.append(comp_)
         return set().union(*train), set().union(*heldout), cut
+
+    def make_overlapping_test_sets(self, d1, d2, feats):
+        '''
+            Given a partition (d1, d2, d3), we want to create, from d2, all the
+            test sets with different amounts of overlap. For a set of N
+            features, there are 2^N different kinds of overlap. This function
+            returns those sets (all of which are subsets of d2). d2 is the
+            set of data points that overlap in features with both d1 and d3.
+
+            A_1, A_2, A_3, ..., A_N
+
+            1. d2 intersect overlap feature_i --> A_1, A_2 ...
+            2. 
+
+
+        '''
+        N = len(feats)
+        subsets = {i: set(d2) for i in range(0, 2**N)}
+        feature_subsets = {}
+        for i in range(N):
+            feat_types = sorted(feats[i].keys())
+            d1_feats = set().union(*[val[i] for reco, val in self.recordings.items() if reco in d1])
+            d2_overlapping_recos = [
+                reco for reco, val in self.recordings.items() 
+                if reco in d2 and len(val[i].intersection(d1_feats)) > 0
+            ]
+            feature_subsets[i] = d2_overlapping_recos
+        
+        for subset in subsets:
+            subset_binary = format(subset, f'0{N}b')
+            new_set = subsets[subset]
+            for i, idx in enumerate(subset_binary): #(ABC) 011 --> A and !B and !C 
+                if idx == '0':
+                    new_set = new_set.intersection(feature_subsets[i])
+                else:
+                    new_set = new_set.intersection(
+                        set(d2).difference(feature_subsets[i])
+                    )
+            subsets[subset] = new_set
+        return subsets 

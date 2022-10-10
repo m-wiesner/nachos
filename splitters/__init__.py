@@ -2,3 +2,4 @@ from .SpectralClusteringSplitter import SpectralClusteringSplitter
 from .GomoryHuSplitter import GomoryHuSplitter
 from .RandomFeatureSplitter import RandomFeatureSplitter
 from .MinNodeCutSplitter import MinNodeCutSplitter
+from .GreedyFeatureSplitter import GreedyFeatureSplitter
