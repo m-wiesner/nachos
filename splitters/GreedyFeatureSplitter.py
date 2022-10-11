@@ -149,7 +149,6 @@ class GreedyFeatureSplitter(RandomFeatureSplitter):
         heldout_ratio = len(heldout) / len(self.fids)
         train_error = abs(train_ratio - self.train_ratio)
         heldout_error = abs(heldout_ratio - self.heldout_ratio)
-        score = 2 * (1 - train_error) * (1 - heldout_error) / (2 - train_error - heldout_error)
-        #score = 2 - (train_error + heldout_error)
+        score = 2 - (train_error + heldout_error) - abs(train_error - heldout_error)
         return score, train_ratio, heldout_ratio
            

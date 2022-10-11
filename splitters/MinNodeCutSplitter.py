@@ -106,7 +106,6 @@ class MinNodeCutSplitter(BaseGraphSplitter):
             capacity = np.dot(np.ones(len(self.feature_names),), sims)
             if capacity > 0:
                 G.add_edge(i, j, capacity=capacity)
-                #G.add_edge(j, i, capacity=capacity)
 
         # Sample node cuts.
         for iter_num in tqdm(range(self.max_iter)):
@@ -118,13 +117,11 @@ class MinNodeCutSplitter(BaseGraphSplitter):
             train, heldout, cut = self.draw_random_node_cut(G)
             train_ratio = len(train) / len(fids)
             heldout_ratio = len(heldout) / len(fids)
-            train_score = abs(train_ratio - self.train_ratio)
-            heldout_score = abs(heldout_ratio - self.heldout_ratio)
-            score = train_score + heldout_score
+            score = self.score(train_ratio, heldout_ratio)
             if score < best_score and heldout_ratio > self.heldout_min:
                 best_score = score
                 best_split = ((train, train_ratio), (heldout, heldout_ratio))
-                print(f'i: {iter_num}, T: {train_ratio:0.2f}, H: {heldout_ratio:0.2f}')
+                print(f'i: {iter_num}, T: {train_ratio:0.2f}, H: {heldout_ratio:0.2f} S: {best_score}')
                 for feat_idx in range(len(self.feature_names)):
                     train_features = set().union(
                         *[recordings[i][feat_idx] for i in train]
@@ -221,4 +218,11 @@ class MinNodeCutSplitter(BaseGraphSplitter):
                         set(d2).difference(feature_subsets[i])
                     )
             subsets[subset] = new_set
-        return subsets 
+        return subsets
+
+    def score(self, train_ratio, heldout_ratio):
+        train_score = abs(train_ratio - self.train_ratio)
+        heldout_score = abs(heldout_ratio - self.heldout_ratio)
+        score = train_score + heldout_score + abs(train_score - heldout_score)
+        return score
+

@@ -109,9 +109,7 @@ class RandomFeatureSplitter(BaseSplitter):
                 self.check_complete()    
             
             heldout_ratio = len(heldout) / len(fids)
-            train_score = abs(train_ratio - self.train_ratio)
-            heldout_score = abs(heldout_ratio - self.heldout_ratio)
-            score = train_score + heldout_score
+            score = self.score(train_ratio, heldout_ratio)
             if score < best_score and heldout_ratio > self.heldout_min:
                 best_score = score
                 best_split = ((train, train_ratio), (heldout, heldout_ratio))
@@ -237,5 +235,10 @@ class RandomFeatureSplitter(BaseSplitter):
             subsets[subset] = new_set
         return subsets                         
 
+    def score(self, train, heldout):
+        train_score = abs(train_ratio - self.train_ratio)
+        heldout_score = abs(heldout_ratio - self.heldout_ratio)
+        score = train_score + heldout_score + abs(train_score - heldout_score)
+        return score
 
 
