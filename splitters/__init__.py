@@ -3,3 +3,4 @@ from .GomoryHuSplitter import GomoryHuSplitter
 from .RandomFeatureSplitter import RandomFeatureSplitter
 from .MinNodeCutSplitter import MinNodeCutSplitter
 from .GreedyFeatureSplitter import GreedyFeatureSplitter
+from .VNSFeatureSplitter import VNSFeatureSplitter

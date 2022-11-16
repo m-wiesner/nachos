@@ -37,14 +37,15 @@ class RandomFeatureSplitter(BaseSplitter):
             metrics=args.metrics,
             tol=args.tol,
             max_iter=args.max_iter,
-            heldout_min=0.01,
+            heldout_min=args.heldout_min,
             simfuns=simfuns,
+            constraint_weights=args.constraint_weight,
             seed=args.seed,
         )
     
     def __init__(self, num_features, train_ratio, heldout_ratio,
         feature_names=None, metrics=None, tol=0.05, max_iter=1000,
-        heldout_min=0.01, simfuns=None, seed=0, 
+        heldout_min=0.01, simfuns=None, seed=0, constraint_weight=0.5,
     ):
         self.metrics = ['overlap' for f in range(num_features)]
         if metrics is not None:
@@ -60,14 +61,25 @@ class RandomFeatureSplitter(BaseSplitter):
         self.max_iter = max_iter
         self.heldout_min = heldout_min
         self.simfuns = simfuns
+        self.constraint_weight = constraint_weight
         self.seed = seed 
     
-    def split(self, recordings):
+    def split(self, recordings, constraints=None):
         random.seed(self.seed)
         fids = sorted(recordings.keys())
         self.fids = fids
         self.recordings = recordings
+        self.constraints = constraints
+        self.num_constraints = len(constraints[fids[0]]) if constraints is not None else None
         
+        # If the training set is emptpy there is a good chance that the
+        # the relationships between data form a complete graph. In a
+        # complete graph, there is no node cut that will result in 2+
+        # connected components. Hence, there is no point in running the
+        # rest of this algorithm. We check to see if the affinity matrix
+        # corresponding to the graph of the data is complete.
+        self.check_complete()    
+
         # We want to select random subsets by partitioning on each feature.
         # Let F_i denote the set of subsets created by all possible (non-empty)
         # partitions on the i-th feature. We will randomly select a subset,
@@ -86,34 +98,20 @@ class RandomFeatureSplitter(BaseSplitter):
                     if feat not in feats[idx]:
                         feats[idx][feat] = []
                     feats[idx][feat].append(fid)
-       
+      
+        self.feats = feats 
+        self.feat_types = [sorted(feat.keys()) for feat in feats.values()] 
+        
         train_ratio, heldout_ratio, iter_num = 999., 999., 0
         best_score = 999.
         recordings_set = set(recordings.keys())
         for iter_num in tqdm(range(self.max_iter)):
-            if (
-                abs(train_ratio - self.train_ratio) <= self.tol and
-                abs(heldout_ratio - self.heldout_ratio) <= self.tol
-            ):
-                break 
-            train, heldout, _, _ = self.draw_random_split(feats, recordings_set)
-            train_ratio = len(train) / len(fids)
-            
-            # If the training set is emptpy there is a good chance that the
-            # the relationships between data form a complete graph. In a
-            # complete graph, there is no node cut that will result in 2+
-            # connected components. Hence, there is no point in running the
-            # rest of this algorithm. We check to see if the affinity matrix
-            # corresponding to the graph of the data is complete.
-            if train_ratio == 0 and iter_num == 0:
-                self.check_complete()    
-            
-            heldout_ratio = len(heldout) / len(fids)
-            score = self.score(train_ratio, heldout_ratio)
+            train, heldout, _, _, _ = self.draw_random_split()
+            score, train_ratio, heldout_ratio, *new_constraints = self.score(train, heldout)
             if score < best_score and heldout_ratio > self.heldout_min:
                 best_score = score
                 best_split = ((train, train_ratio), (heldout, heldout_ratio))
-                print(f'i: {iter_num}, T: {train_ratio:0.2f}, H: {heldout_ratio:0.2f}')
+                print(f'i: {iter_num}, T: {train_ratio:0.2f}, H: {heldout_ratio:0.2f}, C: {new_constraints}, S: {score}')
                 for feat_idx in range(len(self.feature_names)):
                     train_features = set().union(
                         *[recordings[i][feat_idx] for i in train]
@@ -130,7 +128,7 @@ class RandomFeatureSplitter(BaseSplitter):
         assert(len(set(d2).intersection(best_split[0][0])) == 0)
         assert(len(set(d2).intersection(best_split[1][0])) == 0)
         other_test_sets = self.make_overlapping_test_sets(
-            best_split[0][0], d2, feats,
+            best_split[0][0], d2,
         )
         for i in fids:
             if i in best_split[0][0]:
@@ -144,13 +142,15 @@ class RandomFeatureSplitter(BaseSplitter):
                     continue;
         self.num_clusters = 2**(len(feats)) + 2
             
-    def draw_random_split(self, feats, recordings):
+    def draw_random_split(self):
         feat_subsets = []
         feat_subsets_complement = []
-        for idx, feat in feats.items():
-            feat_types = sorted(feat.keys())
-            subset_idx = random.randint(0, 2**len(feat_types) - 1)
+        feat_idxs = []
+        for idx, feat in self.feats.items():
+            feat_types = self.feat_types[idx]
+            subset_idx = random.randint(1, 2**len(feat_types) - 2)
             subset_idx_binary = format(subset_idx, f'0{len(feat_types)}b')
+            feat_idxs.append(subset_idx_binary)
             include_speakers, exclude_speakers = [], []
             for i, j in enumerate(subset_idx_binary):
                 if j == '1':
@@ -171,7 +171,7 @@ class RandomFeatureSplitter(BaseSplitter):
             feat_subsets_complement.append(feat_subset_complement)
         train = set.intersection(*feat_subsets)
         held_out = set.intersection(*feat_subsets_complement)
-        return train, held_out, feat_subsets, feat_subsets_complement
+        return train, held_out, feat_subsets, feat_subsets_complement, feat_idxs
 
     def check_complete(self):
         triu_idxs = np.triu_indices(len(self.recordings), k=1)
@@ -186,16 +186,28 @@ class RandomFeatureSplitter(BaseSplitter):
             capacity = np.dot(np.ones(len(self.feature_names),), sims)
             if capacity > 0:
                 G.add_edge(i, j, capacity=capacity)
+        # Check disconnected
+        num_components = nx.number_connected_components(G)
+        if num_components > 1:
+            raise ValueError(f"A disconnected graph with {num_components} "
+                "components was detected. This algorithm does not work on "
+                "disconnected graphs."
+            )
+        
         is_complete = True
         for n in range(len(G)):
-            if G.degree(n) != len(G) - 1:
-                is_complete = False
+            try:
+                if G.degree(n) != len(G) - 1:
+                    is_complete = False
+                    break;
+            except:
+                import pdb; pdb.set_trace()
         if is_complete:
             raise ValueError("A complete graph was detected. This "
                 "algorithm does not work on complete graphs."
             )
     
-    def make_overlapping_test_sets(self, d1, d2, feats):
+    def make_overlapping_test_sets(self, d1, d2,):
         '''
             Given a partition (d1, d2, d3), we want to create, from d2, all the
             test sets with different amounts of overlap. For a set of N
@@ -210,6 +222,7 @@ class RandomFeatureSplitter(BaseSplitter):
 
 
         '''
+        feats = self.feats
         N = len(feats)
         subsets = {i: set(d2) for i in range(0, 2**N)}
         feature_subsets = {}
@@ -236,9 +249,36 @@ class RandomFeatureSplitter(BaseSplitter):
         return subsets                         
 
     def score(self, train, heldout):
-        train_score = abs(train_ratio - self.train_ratio)
-        heldout_score = abs(heldout_ratio - self.heldout_ratio)
-        score = train_score + heldout_score + abs(train_score - heldout_score)
-        return score
-
-
+        train_ratio = len(train) / len(self.fids)
+        heldout_ratio = len(heldout) / len(self.fids)
+        train_error = abs(train_ratio - self.train_ratio)
+        heldout_error = abs(heldout_ratio - self.heldout_ratio)
+        score = train_error + heldout_error
+        if self.constraints is not None:
+            if len(heldout) == 0 or len(train) == 0:
+                ho_constraints = np.array([999.0 for i in range(self.num_constraints)])
+                train_constraints = np.array([999. for i in range(self.num_constraints)])
+            else:
+                train_constraints = np.array(
+                    [
+                        [
+                            self.constraints[fid][idx_c]
+                            for idx_c in range(self.num_constraints)
+                        ] for fid in train
+                    ]
+                ).sum(axis=0) / len(train)
+                ho_constraints = np.array(
+                    [
+                        [
+                            self.constraints[fid][idx_c]
+                            for idx_c in range(self.num_constraints)
+                        ] for fid in heldout
+                    ]
+                ).sum(axis=0) / len(heldout)
+            score = (
+                (1-self.constraint_weight) * score 
+                + self.constraint_weight * np.abs(train_constraints - ho_constraints).sum()
+            )
+            #score = score + np.abs(train_constraints - 0.5).sum() + np.abs(ho_constraints - 0.5).sum()
+            return score, train_ratio, heldout_ratio, *train_constraints, *ho_constraints
+        return score, train_ratio, heldout_ratio

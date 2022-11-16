@@ -34,6 +34,7 @@ class GreedyFeatureSplitter(RandomFeatureSplitter):
             heldout_min=args.heldout_min,
             simfuns=simfuns,
             neighborhood_size=args.neighborhood_size,
+            constraint_weight=args.constraint_weight,
             seed=args.seed,
         )
 
@@ -44,16 +45,17 @@ class GreedyFeatureSplitter(RandomFeatureSplitter):
         super(GreedyFeatureSplitter, self).__init__(num_features, train_ratio,
             heldout_ratio, feature_names=feature_names, metrics=metrics,
             tol=tol, max_iter=max_iter, heldout_min=heldout_min,
-            simfuns=simfuns, seed=seed,
+            simfuns=simfuns, constraint_weight=constraint_weight, seed=seed,
         )
         self.neighborhood_size = neighborhood_size
     
-    def split(self, recordings):
+    def split(self, recordings, constraints=None):
         random.seed(self.seed)
         fids = sorted(recordings.keys())
         self.fids = fids
         self.recordings = recordings
-        
+        self.constraints = constraints
+        self.num_constraints = len(constraints[fids[0]]) if constraints is not None else None
         # We want to select random subsets by partitioning on each feature.
         # Let F_i denote the set of subsets created by all possible (non-empty)
         # partitions on the i-th feature. We will randomly select a subset,
@@ -73,22 +75,16 @@ class GreedyFeatureSplitter(RandomFeatureSplitter):
                         feats[idx][feat] = []
                     feats[idx][feat].append(fid)
        
+        self.feats = feats
+        self.feat_types = [sorted(feat.keys()) for feat in feats.values()] 
         recordings_set = set(recordings.keys())
+        # Check that the graph is not complete
+        self.check_complete()
         # Draw first candidate
-        train, held_out, curr_sets, curr_complements = self.draw_random_split(feats, recordings_set)
-        train_ratio = len(train) / len(fids)
-        if train_ratio == 0:
-            self.check_complete()
-        heldout_ratio = len(held_out) / len(fids)
+        train, held_out, curr_sets, curr_complements, _ = self.draw_random_split()
         for iter_num in tqdm(range(self.max_iter)):
-            if (
-                abs(train_ratio - self.train_ratio) <= self.tol and
-                abs(heldout_ratio - self.heldout_ratio) <= self.tol
-            ):
-                break 
-
-            score, _, _ = self.score(train, held_out)
-            samples = self.draw_k_random_samples(feats, recordings_set)
+            score = self.score(train, held_out)[0]
+            samples = self.draw_k_random_samples(recordings_set)
             curr_sets, curr_complements = self.update_curr_sets(
                 curr_sets, curr_complements, samples, score
             ) 
@@ -101,7 +97,7 @@ class GreedyFeatureSplitter(RandomFeatureSplitter):
             if (i not in train) and (i not in held_out):
                 d2.append(i)  
         other_test_sets = self.make_overlapping_test_sets(
-            train, d2, feats,
+            train, d2,
         )
         for i in fids:
             if i in train:
@@ -115,10 +111,11 @@ class GreedyFeatureSplitter(RandomFeatureSplitter):
                     continue;
         self.num_clusters = 2**(len(feats)) + 2
 
-    def draw_k_random_samples(self, feats, recordings_set):
+    def draw_k_random_samples(self, recordings_set):
+        feats = self.feats
         samples = []
         for k in range(self.neighborhood_size):
-            _, _, subsets, complements = self.draw_random_split(feats, recordings_set) 
+            _, _, subsets, complements, _ = self.draw_random_split() 
             samples.append((subsets, complements))    
         return samples
 
@@ -130,25 +127,19 @@ class GreedyFeatureSplitter(RandomFeatureSplitter):
             update = [j for j in curr_sets]
             complement = [j for j in curr_complements]
             for s_idx, s in enumerate(samples):       
+                # s[0] are the candidate selected sets
+                # s[1] are the candidate selected set complements
                 update[i] = s[0][i]
                 complement[i] = s[1][i]
                 # evaluate
                 train = set.intersection(*update)
                 held_out = set.intersection(*complement)
-                score, tr, hr = self.score(train, held_out)
-                if score > best_score and len(held_out) / len(self.fids) > self.heldout_min:
-                    print("---------------------------------")
-                    print(f'T: {tr:0.2f}, H: {hr:0.2f}, S: {score}')
-                    best_score = score
-                    best_update = [j for j in update]
-                    best_complement = [j for j in complement]
+                if len(held_out) > 0:
+                    score, tr, hr, *cr = self.score(train, held_out)
+                    if score < best_score and hr > self.heldout_min:
+                        print("---------------------------------")
+                        print(f'T: {tr:0.2f}, H: {hr:0.2f}, C: {cr}, S: {score}')
+                        best_score = score
+                        best_update = [j for j in update]
+                        best_complement = [j for j in complement]
         return best_update, best_complement
-    
-    def score(self, train, heldout):
-        train_ratio = len(train) / len(self.fids)
-        heldout_ratio = len(heldout) / len(self.fids)
-        train_error = abs(train_ratio - self.train_ratio)
-        heldout_error = abs(heldout_ratio - self.heldout_ratio)
-        score = 2 - (train_error + heldout_error) - abs(train_error - heldout_error)
-        return score, train_ratio, heldout_ratio
-           

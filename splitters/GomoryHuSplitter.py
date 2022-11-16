@@ -25,6 +25,5 @@ class GomoryHuSplitter(BaseGraphSplitter):
             capacity = np.dot(self.feature_weights, sims)
             if capacity > 0:
                 G.add_edge(i, j, capacity=capacity)
-        import pdb; pdb.set_trace()
         T = nx.gomory_hu_tree(G, flow_func=shortest_augmenting_path)
 

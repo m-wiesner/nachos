@@ -4,6 +4,7 @@
 # Apache 2.0
 from .BaseSplitter import BaseSplitter
 import numpy as np
+import networkx as nx
 
 
 class SimFuns(object):
@@ -81,4 +82,3 @@ class BaseGraphSplitter(BaseSplitter):
             A[i, j] = np.dot(self.feature_weights, sims)
             A[j, i] = A[i, j]
         self.A = A
-

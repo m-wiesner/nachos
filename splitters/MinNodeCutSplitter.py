@@ -4,6 +4,9 @@
 # Apache 2.0
 from .BaseSplitter import BaseSplitter
 from .BaseGraphSplitter import BaseGraphSplitter, SimFuns
+from networkx.algorithms.connectivity import build_auxiliary_node_connectivity
+from networkx.algorithms.flow import build_residual_network
+from networkx.algorithms.connectivity import minimum_st_node_cut
 import random
 import numpy as np
 import networkx as nx
@@ -107,6 +110,26 @@ class MinNodeCutSplitter(BaseGraphSplitter):
             if capacity > 0:
                 G.add_edge(i, j, capacity=capacity)
 
+        # Check disconnected
+        num_components = nx.number_connected_components(G)
+        if num_components > 1:
+            raise ValueError(f"A disconnected graph with {num_components} "
+                "components was detected. This algorithm does not work on "
+                "disconnected graphs."
+            )
+        # check complete
+        is_complete = True
+        for n in range(len(G)):
+            if G.degree(n) != len(G) - 1:
+                is_complete = False
+                break;
+        if is_complete:
+            raise ValueError("A complete graph was detected. This "
+                "algorithm does not work on complete graphs."
+            )
+
+        A = build_auxiliary_node_connectivity(G)
+        R = build_residual_network(A, "capacity")
         # Sample node cuts.
         for iter_num in tqdm(range(self.max_iter)):
             if (
@@ -114,7 +137,7 @@ class MinNodeCutSplitter(BaseGraphSplitter):
                     abs(heldout_ratio - self.heldout_ratio) <= self.tol
             ):
                 break;
-            train, heldout, cut = self.draw_random_node_cut(G)
+            train, heldout, cut = self.draw_random_node_cut(G, A, R)
             train_ratio = len(train) / len(fids)
             heldout_ratio = len(heldout) / len(fids)
             score = self.score(train_ratio, heldout_ratio)
@@ -151,14 +174,14 @@ class MinNodeCutSplitter(BaseGraphSplitter):
                     continue;
         self.num_clusters = 2**(len(feats)) + 2
 
-    def draw_random_node_cut(self, G):
+    def draw_random_node_cut(self, G, A, R):
         nodes_are_adjacent = True
         while nodes_are_adjacent:
             sampled_nodes = random.sample(range(len(G)), 2)
             if sampled_nodes[1] not in G.neighbors(sampled_nodes[0]):
                 nodes_are_adjacent = False
 
-        cut = nx.minimum_node_cut(G, s=sampled_nodes[0], t=sampled_nodes[1])
+        cut = minimum_st_node_cut(G, sampled_nodes[0], sampled_nodes[1], auxiliary=A, residual=R)
         H = deepcopy(G)
         for n in cut:
             H.remove_node(n)
@@ -223,6 +246,6 @@ class MinNodeCutSplitter(BaseGraphSplitter):
     def score(self, train_ratio, heldout_ratio):
         train_score = abs(train_ratio - self.train_ratio)
         heldout_score = abs(heldout_ratio - self.heldout_ratio)
-        score = train_score + heldout_score + abs(train_score - heldout_score)
+        score = train_score + heldout_score #+ abs(train_score - heldout_score)
         return score
 

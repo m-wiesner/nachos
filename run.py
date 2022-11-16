@@ -23,26 +23,38 @@ def main():
             'GomoryHuSplitter',
             'RandomFeatureSplitter',
             'GreedyFeatureSplitter',
+            'VNSFeatureSplitter',
             'MinNodeCutSplitter',
         ],
     )
+    parser.add_argument('--feat-idxs', nargs='+', type=int, default=None)
+    parser.add_argument('--constraint-idxs', nargs='+', type=int, default=None)
+    parser.add_argument('--constraint-weight', type=float, default=None) 
     args, leftover = parser.parse_known_args()
     splitter_class = getattr(splitters, args.splitter)
     splitter_class.add_args(parser)
     args = parser.parse_args()
     
-    recordings = {}
+    recordings, constraints = {}, {}
     with open(args.features, 'r') as f:
         for l in f:
             fid, features = l.strip().split(None, 1)
             features = features.split('\t')
-            features_list = []
-            for f in features:
+            features_list, constraints_list = [], []
+            for f_idx in args.feat_idxs:
+                f = features[f_idx]
                 features_list.append(set(f.split(',')))
+            if args.constraint_idxs is not None:
+                for c_idx in args.constraint_idxs:
+                    c = features[c_idx]
+                    constraints_list.append(float(c))
+                constraints[fid] = constraints_list
             recordings[fid] = features_list
-
     splitter = splitter_class.from_args(args)
-    splitter.split(recordings)
+    if len(constraints) > 0:
+        splitter.split(recordings, constraints=constraints)
+    else:
+        splitter.split(recordings)
     if args.log is not None:
         splitter.compute_metrics(fname=args.log)
     splitter.clusters_to_file(args.output)
