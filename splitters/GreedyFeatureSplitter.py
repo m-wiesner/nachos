@@ -40,7 +40,8 @@ class GreedyFeatureSplitter(RandomFeatureSplitter):
 
     def __init__(self, num_features, train_ratio, heldout_ratio,
         feature_names=None, metrics=None, tol=0.05, max_iter=100,
-        heldout_min=0.01, simfuns=None, seed=0, neighborhood_size=10
+        heldout_min=0.01, simfuns=None, seed=0, neighborhood_size=10,
+        constraint_weight=0.5,
     ):
         super(GreedyFeatureSplitter, self).__init__(num_features, train_ratio,
             heldout_ratio, feature_names=feature_names, metrics=metrics,
@@ -80,6 +81,7 @@ class GreedyFeatureSplitter(RandomFeatureSplitter):
         recordings_set = set(recordings.keys())
         # Check that the graph is not complete
         self.check_complete()
+
         # Draw first candidate
         train, held_out, curr_sets, curr_complements, _ = self.draw_random_split()
         for iter_num in tqdm(range(self.max_iter)):

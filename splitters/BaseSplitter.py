@@ -6,7 +6,7 @@
 
 class BaseSplitter(object):
     @staticmethod
-    def add_pargs(parser):
+    def add_args(parser):
         raise NotImplementedError
 
     @classmethod

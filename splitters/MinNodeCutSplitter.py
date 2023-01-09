@@ -59,12 +59,14 @@ class MinNodeCutSplitter(BaseGraphSplitter):
             heldout_min=args.heldout_min,
             simfuns=simfuns,
             feature_weights=args.feature_weights,
+            constraint_weight=args.constraint_weight,
             seed=args.seed,
         )
 
     def __init__(self, num_features, train_ratio, heldout_ratio,
         feature_names=None, metrics=None, tol=0.05, max_iter=1000,
         feature_weights=None, heldout_min=0.01, simfuns=None, seed=0,
+        constraint_weight=0.5,
     ):
         super(MinNodeCutSplitter, self).__init__(simfuns, 3, metrics=metrics,
             feature_weights=feature_weights, feature_names=feature_names,
@@ -75,14 +77,17 @@ class MinNodeCutSplitter(BaseGraphSplitter):
         self.max_iter = max_iter
         self.heldout_min = heldout_min
         self.simfuns = simfuns
+        self.constraint_weight = constraint_weight
         self.seed = seed
 
-    def split(self, recordings):
+    def split(self, recordings, constraints=None):
         random.seed(self.seed)
         fids = sorted(recordings.keys())
         self.fids = fids
         self.recordings = recordings
-       
+        self.constraints = constraints
+        self.num_constraints = len(constraints[fids[0]]) if constraints is not None else None
+
         feats = {}
         for fid in fids:
             for idx, feat_set in enumerate(recordings[fid]):
@@ -93,7 +98,9 @@ class MinNodeCutSplitter(BaseGraphSplitter):
                         feats[idx][feat] = []
                     feats[idx][feat].append(fid)
 
-        train_ratio, heldout_ratio = 999., 999.
+        self.feats = feats
+        self.feat_types = [sorted(feat.keys()) for feat in feats.values()] 
+        
         best_score = 999.
         recordings_set = set(recordings.keys())
         # Create the Graph
@@ -132,19 +139,12 @@ class MinNodeCutSplitter(BaseGraphSplitter):
         R = build_residual_network(A, "capacity")
         # Sample node cuts.
         for iter_num in tqdm(range(self.max_iter)):
-            if (
-                    abs(train_ratio - self.train_ratio) <= self.tol and
-                    abs(heldout_ratio - self.heldout_ratio) <= self.tol
-            ):
-                break;
             train, heldout, cut = self.draw_random_node_cut(G, A, R)
-            train_ratio = len(train) / len(fids)
-            heldout_ratio = len(heldout) / len(fids)
-            score = self.score(train_ratio, heldout_ratio)
-            if score < best_score and heldout_ratio > self.heldout_min:
+            score, tr, hr, *cr = self.score(train, heldout)
+            if score < best_score and hr > self.heldout_min:
                 best_score = score
-                best_split = ((train, train_ratio), (heldout, heldout_ratio))
-                print(f'i: {iter_num}, T: {train_ratio:0.2f}, H: {heldout_ratio:0.2f} S: {best_score}')
+                best_split = ((train, tr), (heldout, hr))
+                print(f'i: {iter_num}, T: {tr:0.2f}, H: {hr:0.2f} C: {cr}, S: {best_score}')
                 for feat_idx in range(len(self.feature_names)):
                     train_features = set().union(
                         *[recordings[i][feat_idx] for i in train]
@@ -160,7 +160,7 @@ class MinNodeCutSplitter(BaseGraphSplitter):
             if (i not in best_split[0][0]) and (i not in best_split[1][0]):
                 d2.append(i)
         other_test_sets = self.make_overlapping_test_sets(
-            best_split[0][0], d2, feats
+            best_split[0][0], d2,
         )
         for i in fids:
             if i in best_split[0][0]:
@@ -203,7 +203,7 @@ class MinNodeCutSplitter(BaseGraphSplitter):
                 heldout.append(comp_)
         return set().union(*train), set().union(*heldout), cut
 
-    def make_overlapping_test_sets(self, d1, d2, feats):
+    def make_overlapping_test_sets(self, d1, d2):
         '''
             Given a partition (d1, d2, d3), we want to create, from d2, all the
             test sets with different amounts of overlap. For a set of N
@@ -218,11 +218,11 @@ class MinNodeCutSplitter(BaseGraphSplitter):
 
 
         '''
-        N = len(feats)
+        N = len(self.feats)
         subsets = {i: set(d2) for i in range(0, 2**N)}
         feature_subsets = {}
         for i in range(N):
-            feat_types = sorted(feats[i].keys())
+            feat_types = sorted(self.feats[i].keys())
             d1_feats = set().union(*[val[i] for reco, val in self.recordings.items() if reco in d1])
             d2_overlapping_recos = [
                 reco for reco, val in self.recordings.items() 
@@ -243,9 +243,37 @@ class MinNodeCutSplitter(BaseGraphSplitter):
             subsets[subset] = new_set
         return subsets
 
-    def score(self, train_ratio, heldout_ratio):
-        train_score = abs(train_ratio - self.train_ratio)
-        heldout_score = abs(heldout_ratio - self.heldout_ratio)
-        score = train_score + heldout_score #+ abs(train_score - heldout_score)
-        return score
-
+    def score(self, train, heldout):
+        train_ratio = len(train) / len(self.fids)
+        heldout_ratio = len(heldout) / len(self.fids)
+        train_error = abs(train_ratio - self.train_ratio)
+        heldout_error = abs(heldout_ratio - self.heldout_ratio)
+        score = train_error + heldout_error
+        if self.constraints is not None:
+            if len(heldout) == 0 or len(train) == 0:
+                ho_constraints = np.array([999.0 for i in range(self.num_constraints)])
+                train_constraints = np.array([999. for i in range(self.num_constraints)])
+            else:
+                train_constraints = np.array(
+                    [
+                        [
+                            self.constraints[fid][idx_c]
+                            for idx_c in range(self.num_constraints)
+                        ] for fid in train
+                    ]
+                ).sum(axis=0) / len(train)
+                ho_constraints = np.array(
+                    [
+                        [
+                            self.constraints[fid][idx_c]
+                            for idx_c in range(self.num_constraints)
+                        ] for fid in heldout
+                    ]
+                ).sum(axis=0) / len(heldout)
+            score = (
+                (1-self.constraint_weight) * score 
+                + self.constraint_weight * np.abs(train_constraints - ho_constraints).sum()
+            )
+            #score = score + np.abs(train_constraints - 0.5).sum() + np.abs(ho_constraints - 0.5).sum()
+            return score, train_ratio, heldout_ratio, *train_constraints, *ho_constraints
+        return score, train_ratio, heldout_ratio

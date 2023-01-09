@@ -39,7 +39,7 @@ class RandomFeatureSplitter(BaseSplitter):
             max_iter=args.max_iter,
             heldout_min=args.heldout_min,
             simfuns=simfuns,
-            constraint_weights=args.constraint_weight,
+            constraint_weight=args.constraint_weight,
             seed=args.seed,
         )
     
@@ -187,12 +187,12 @@ class RandomFeatureSplitter(BaseSplitter):
             if capacity > 0:
                 G.add_edge(i, j, capacity=capacity)
         # Check disconnected
-        num_components = nx.number_connected_components(G)
-        if num_components > 1:
-            raise ValueError(f"A disconnected graph with {num_components} "
-                "components was detected. This algorithm does not work on "
-                "disconnected graphs."
-            )
+        #num_components = nx.number_connected_components(G)
+        #if num_components > 1:
+        #    raise ValueError(f"A disconnected graph with {num_components} "
+        #        "components was detected. This algorithm does not work on "
+        #        "disconnected graphs."
+        #    )
         
         is_complete = True
         for n in range(len(G)):
@@ -279,6 +279,12 @@ class RandomFeatureSplitter(BaseSplitter):
                 (1-self.constraint_weight) * score 
                 + self.constraint_weight * np.abs(train_constraints - ho_constraints).sum()
             )
-            #score = score + np.abs(train_constraints - 0.5).sum() + np.abs(ho_constraints - 0.5).sum()
+            #score = (
+            #    (1-self.constraint_weight) * score
+            #    + self.constraint_weight * (
+            #        np.abs(train_constraints - 0.5).sum() 
+            #      + np.abs(ho_constraints - 0.5).sum()
+            #      )
+            #)
             return score, train_ratio, heldout_ratio, *train_constraints, *ho_constraints
         return score, train_ratio, heldout_ratio

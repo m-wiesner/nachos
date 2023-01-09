@@ -4,3 +4,4 @@ from .RandomFeatureSplitter import RandomFeatureSplitter
 from .MinNodeCutSplitter import MinNodeCutSplitter
 from .GreedyFeatureSplitter import GreedyFeatureSplitter
 from .VNSFeatureSplitter import VNSFeatureSplitter
+from .DisconnectedSplitter import DisconnectedSplitter

@@ -85,7 +85,7 @@ class VNSFeatureSplitter(GreedyFeatureSplitter):
         self.feat_types = [sorted(feat.keys()) for feat in feats.values()] 
         recordings_set = set(recordings.keys())
         # Check that the graph is not complete
-        self.check_complete()
+        #self.check_complete()
         
         # Draw first candidate
         train, held_out, curr_sets, curr_complements, curr_feats = self.draw_random_split()

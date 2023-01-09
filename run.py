@@ -25,6 +25,7 @@ def main():
             'GreedyFeatureSplitter',
             'VNSFeatureSplitter',
             'MinNodeCutSplitter',
+            'DisconnectedSplitter',
         ],
     )
     parser.add_argument('--feat-idxs', nargs='+', type=int, default=None)
