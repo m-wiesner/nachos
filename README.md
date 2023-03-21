@@ -9,6 +9,7 @@ the room in which it was spoken etc...
 ## Installation
 
 git clone https://github.com/m-wiesner/nachos.git 
+
 pip install -e . 
 
 ## What you need to do
