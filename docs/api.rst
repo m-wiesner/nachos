@@ -10,7 +10,7 @@ Data
 
 Similarity
 ==========
-.. automodule:: nachos.similarity_functions
+.. automodule:: nachos.similarity_functions.SimilarityFunctions
       :members:
       :inherited members:
 
