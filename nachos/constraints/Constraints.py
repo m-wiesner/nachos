@@ -64,7 +64,7 @@ class Constraints(object):
     def stats(self,
         u: Dataset,
         s: set,
-    ) -> None:
+    ) -> dict:
         '''
             Summary:
                 Compute the "stats" associated with each constraint on the split.
@@ -74,9 +74,17 @@ class Constraints(object):
             :param u: The Dataset from which a subset is drawn
             :type u: Dataset
             :param s: The proposed subset of the dataset
-            :type s: set 
+            :type s: set
+            
+            Returns
+            ------------------
+            :return: dictionary of the scores for the set s according to the
+                constraints specified in this class
+            :rtype: dict 
         '''
+        constraint_stats = {}
         for n, fn in enumerate(self.fns):
             constraints = u.get_constraints(subset=s, n=n)
-            print(f"Constraint {u.field_names[u.constraint_idxs[n]]}: {fn.stat(constraints):0.4f}")
-        
+            constraint_name = u.field_names[u.constraint_idxs[n]]
+            constraint_stats[constraint_name] = fn.stat(constraints)
+        return constraint_stats 

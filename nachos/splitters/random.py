@@ -2,6 +2,7 @@ from nachos.splitters.abstract_splitter import AbstractSplitter
 from nachos.similarity_functions import build_similarity_functions as build_sims
 from nachos.constraints import build_constraints
 from nachos.data.Data import Dataset, InvertedIndex, Split, FactoredSplit
+from nachos.data.Data import collapse_factored_split
 from nachos.similarity_functions.SimilarityFunctions import SimilarityFunctions
 from nachos.constraints.Constraints import Constraints
 from nachos.splitters import register
@@ -24,7 +25,7 @@ class Random(AbstractSplitter):
     def __init__(self,
         sim_fn: SimilarityFunctions,
         constraints: Constraints,
-        max_iter: Optional[int] = None,
+        max_iter: int = 100000,
         seed: int = 0,
     ):
         super().__init__(sim_fn, constraints)
@@ -67,16 +68,14 @@ class Random(AbstractSplitter):
           
         # Initialize some values
         indices, best_split = d.draw_random_split()
-        subset = set.intersection(*best_split[0])
-        not_subset = set.intersection(*best_split[1])
-        best_score = self.score(d, (subset, not_subset)) 
+        split = collapse_factored_split(best_split) 
+        best_score = self.score(d, split) 
         print(f"Iter 0: Best Score: {best_score:0.4f}")
         scores = [best_score]
         for iter_num in tqdm(range(self.max_iter)):
             indices, split = d.draw_random_split()
-            subset = set.intersection(*split[0])
-            not_subset = set.intersection(*split[1])
-            score = self.score(d, (subset, not_subset)) 
+            collapsed_split = collapse_factored_split(split)
+            score = self.score(d, collapsed_split) 
             if score < best_score:
                 best_score = score
                 print(f"Iter {iter_num}: Best Score: {best_score:0.4f}")

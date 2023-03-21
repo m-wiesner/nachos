@@ -58,13 +58,13 @@ def random_splitter():
     return build_splitter(config)
 
 
-def test_splitter(dummy_eg, random_splitter):
+def test_random_splitter(dummy_eg, random_splitter):
     best_split, scores = random_splitter(dummy_eg)
     for i in range(1, len(scores)):
         assert(scores[i] < scores[i-1])
 
 
-def test_splitter_connected(connected_eg, random_splitter):
+def test_random_splitter_connected(connected_eg, random_splitter):
     config = yaml.safe_load(open("test/fixtures/connected_test_constraints.yaml"))
     splitter = build_splitter(config)
 
@@ -72,8 +72,6 @@ def test_splitter_connected(connected_eg, random_splitter):
     for i in range(1, len(scores)):
         assert(scores[i] < scores[i-1])
     split = collapse_factored_split(best_split)
-    import pdb; pdb.set_trace()
     for idx_s, s in enumerate(split):
-        print(f'Split {idx_s}')
-        print('-----------------------------')
-        splitter.constraint_fn.stats(connected_eg, s)
+        constraint_stats = splitter.constraint_fn.stats(connected_eg, s)
+        print(constraint_stats)
