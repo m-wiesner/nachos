@@ -1,0 +1,8 @@
+id	speaker	prompt	gender	duration
+a	s1	p1	0	2.3
+b	s1	p2	0	15.2
+c	s2	p2	1	4
+d	s2	p3	1	25
+e	s3	p3	1	32.5
+f	s4,s5	p3	0	31.0
+g	s5,s6	p3,p4	0	20.1

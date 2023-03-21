@@ -1,0 +1,8 @@
+id	speaker	prompt	gender	duration	fraction
+a	s1	p1	0	2.3	0.0176787
+b	s1	p2	0	15.2	0.116833
+c	s2	p2	1	4	0.0307456
+d	s2	p3	1	25	0.19216
+e	s3	p3	1	32.5	0.249808
+f	s4,s5	p3	0	31.0	0.238278
+g	s5,s6	p3,p4	0	20.1	0.154497

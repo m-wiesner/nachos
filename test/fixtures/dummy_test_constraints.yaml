@@ -1,0 +1,29 @@
+format: tsv
+factor_types: [str, str, float, float, float]
+splitter: random
+num_splits: 2
+factor_idxs: [1, 2]
+factor_weights: [1.0, 1.0]
+constraint_idxs: [3, 4, 5]
+constraints_weights: [1.0, 1.0, 1.0]
+similarity_functions:
+  - set_intersection
+  - set_intersection
+ 
+# The chosen constraint
+constraints:
+  - mean_tuple
+  - mean
+  - sum_tuple
+
+constraint_weights: [0.1, 0.1, 10.0]
+mean_tuple: [0.5, 0.5]
+sum_tuple: [0.8, 0.2] 
+
+# Optimizer parameters
+seed: 0
+max_iter: 20000
+
+# VNS parameters
+num_shake_neighborhoods: 4
+num_search_neighborhoods: 16 
