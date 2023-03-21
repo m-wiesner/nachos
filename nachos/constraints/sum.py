@@ -13,12 +13,7 @@ class Sum(AbstractConstraint):
     '''
     @classmethod
     def build(cls, conf: dict):
-        return cls(*conf['sum_tuple'])
-
-    def __init__(self, s1_sum: float, s2_sum: float):
-        super().__init__()
-        self.s1_sum = s1_sum
-        self.s2_sum = s2_sum
+        return cls()
 
     def __call__(self,
         c1: Union[list, Generator],
@@ -45,7 +40,7 @@ class Sum(AbstractConstraint):
         '''
         return abs(self.stat(c1) - self.s1_sum) + abs(self.stat(c2) - self.s2_sum)
 
-    def stat(self, c1: Union[List, Generator]) -> float:
+    def stat(self, c1: Union[list, Generator]) -> float:
         '''
             Summary:
                 computes the sum of the values in c1.

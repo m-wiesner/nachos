@@ -22,7 +22,7 @@ sum_tuple: [0.8, 0.2]
 
 # Optimizer parameters
 seed: 0
-max_iter: 200000
+max_iter: 20000
 
 # VNS parameters
 num_shake_neighborhoods: 4

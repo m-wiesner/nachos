@@ -424,5 +424,23 @@ class Dataset(object):
         '''
         random.seed(seed)
 
-    def collapse_factrored_split(self, split: FactoredSplit) -> Split:
-        return (set.intersection(*split[0]), set.intersection(*split[1]))
+
+def collapse_factored_split(split: FactoredSplit) -> Split:
+    '''
+        Summary:
+            Take a FactoredSplit and collapse it by intersecting all the
+            selected set, and intersecting all of their complements to create
+            a single selected set and a single other split with no overlap in
+            any of the factors present in the selected set.
+    
+        Inputs
+        -----------------------
+        :param split: The split to collapse
+        :type split: FactoredSplit
+
+        Returns
+        ------------------------
+        :return: the collapsed split
+        :rtype: Split
+    '''
+    return (set.intersection(*split[0]), set.intersection(*split[1]))

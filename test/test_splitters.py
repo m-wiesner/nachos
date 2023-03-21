@@ -2,7 +2,7 @@ from nachos.data.Input import TSVLoader
 from nachos.constraints import build_constraints
 from nachos.similarity_functions import build_similarity_functions as build_sims
 from nachos.splitters import build_splitter
-from nachos.data.Data import FactoredSplit
+from nachos.data.Data import FactoredSplit, collapse_factored_split
 import yaml
 import pytest
 from pathlib import Path
@@ -69,6 +69,10 @@ def test_splitter_connected(connected_eg, random_splitter):
     splitter = build_splitter(config)
 
     best_split, scores = splitter(connected_eg)
-    import pdb; pdb.set_trace()
     for i in range(1, len(scores)):
         assert(scores[i] < scores[i-1])
+    split = collapse_factored_split(best_split)
+    for idx_s, s in enumerate(split):
+        print(f'Split {idx_s}')
+        print('-----------------------------')
+        splitter.constraint_fn.stats(connected_eg, s)

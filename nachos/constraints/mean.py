@@ -43,7 +43,7 @@ class Mean(AbstractConstraint):
         '''
         return abs(self.stat(c1) - self.stat(c2))
     
-    def stat(self, c1: Union[List, Generator]) -> float:
+    def stat(self, c1: Union[list, Generator]) -> float:
         '''
             Summary:
                 computes the mean of the values in c1.

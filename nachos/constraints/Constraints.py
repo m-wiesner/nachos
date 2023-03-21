@@ -1,5 +1,5 @@
 from typing import Optional, List, Any, Dict, Union
-from nachos.data.Data import Dataset, Split
+from nachos.data.Data import Dataset, Split, collapse_factored_split
 from nachos.constraints.abstract_constraint import AbstractConstraint
 
 
@@ -60,3 +60,23 @@ class Constraints(object):
         not_subset_constraints = u.get_constraints(subset=s[1], n=n)
 
         return self.fns[n](subset_constraints, not_subset_constraints)
+
+    def stats(self,
+        u: Dataset,
+        s: set,
+    ) -> None:
+        '''
+            Summary:
+                Compute the "stats" associated with each constraint on the split.
+        
+            Inputs
+            -----------------
+            :param u: The Dataset from which a subset is drawn
+            :type u: Dataset
+            :param s: The proposed subset of the dataset
+            :type s: set 
+        '''
+        for n, fn in enumerate(self.fns):
+            constraints = u.get_constraints(subset=s, n=n)
+            print(f"Constraint {u.field_names[u.constraint_idxs[n]]}: {fn.stat(constraints):0.4f}")
+        

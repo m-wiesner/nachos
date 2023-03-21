@@ -146,4 +146,4 @@ class KL(AbstractConstraint):
                 np.dot(c1_dist, np.log(c1_dist) - np.log(c2_dist)) + 
                 np.dot(c2_dist, np.log(c2_dist) - np.log(c2_dist))
             )
-
+    
