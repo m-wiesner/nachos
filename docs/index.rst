@@ -10,7 +10,7 @@ Welcome to nachos's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-api.rst
+   api.rst
 
 Indices and tables
 ==================
