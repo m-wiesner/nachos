@@ -72,6 +72,7 @@ def test_splitter_connected(connected_eg, random_splitter):
     for i in range(1, len(scores)):
         assert(scores[i] < scores[i-1])
     split = collapse_factored_split(best_split)
+    import pdb; pdb.set_trace()
     for idx_s, s in enumerate(split):
         print(f'Split {idx_s}')
         print('-----------------------------')
