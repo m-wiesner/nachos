@@ -7,12 +7,12 @@ the gender of the speaker, the duration of the recording, the prompt spoken,
 the room in which it was spoken etc...
 
 ## Installation
-
+```
 git clone https://github.com/m-wiesner/nachos.git
 cd nachos 
 pip install -r requirements.txt
 pip install -e . 
-
+```
 ## What you need to do
 
 Create a file representing your corpus that has a column for the id of each
