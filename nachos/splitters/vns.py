@@ -94,8 +94,8 @@ class VNS(AbstractSplitter):
             # points in the neighborhood. We will try this up to self.K times
             # before just incrementing the iteration number.
             for k in range(1, self.K+1):
-                if k > 1:
-                    print(f"K: {k}")
+                #if k > 1:
+                #    print(f"K: {k}")
                 # Get a random split (shake_split) selected from the
                 # neighborhood of the current split (split)
                 shake_indices, shake_split = d.shake(indices, split, k)
@@ -110,8 +110,8 @@ class VNS(AbstractSplitter):
                 # self.get_neighborhood for more details about how we form the
                 # neighborhoods.
                 for l in range(1, self.L+1):
-                    if l > 1:
-                        print(f"L: {l}")
+                    #if l > 1:
+                    #    print(f"L: {l}")
                     # Find the smallest cost neighbor in the neighborhood of l
                     neighborhood = d.get_neighborhood(
                         shake_indices, shake_split, l, 

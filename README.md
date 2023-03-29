@@ -8,8 +8,9 @@ the room in which it was spoken etc...
 
 ## Installation
 
-git clone https://github.com/m-wiesner/nachos.git 
-
+git clone https://github.com/m-wiesner/nachos.git
+cd nachos 
+pip install -r requirements.txt
 pip install -e . 
 
 ## What you need to do
@@ -20,10 +21,15 @@ column for each feature that is relevant for creating the split. This could be
 prompt, speaker ID, etc..
 
 We will support multiple splitting methods, (splitters), which appear to be better
-suited for different tasks. For now we have implemented a random feature splitting method
+suited for different tasks. For now we have implemented:
+   a random feature splitting method (random)
+   minimum node cut splitter (min_node_cut)
+   variable neighborhood search splitter (vns)
 
-Others to come include:
-  - spectral_clustering
-  - min_node_cut
-  - vns (variable neighborhood search)
+## Running
 
+Set the values in config.yaml to the desired values and then
+
+```
+python run.py
+```

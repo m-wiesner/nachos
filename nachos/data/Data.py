@@ -810,7 +810,10 @@ class Dataset(object):
                 overlapping_points = s2.intersection(
                     set().union(*data_w_overlapping_factors[f_idx])
                 )
-                overlap_stats[f_idx] = len(overlapping_points) / len(s2)
+                field_name = self.field_names[self.factor_idxs[f_idx]]
+                overlap_stats[field_name] = round(
+                    len(overlapping_points) / len(s2), 4
+                )
         return overlap_stats
         
 def collapse_factored_split(split: FactoredSplit) -> Split:

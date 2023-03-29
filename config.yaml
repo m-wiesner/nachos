@@ -17,13 +17,13 @@ format: tsv
 # nachos uses a variety of splitters
 # Choices: VNS, MinNodeCut, Disconnected, SpectralClustering, Random 
 splitters:
-  - VNS
-  - MinNodeCut
-  - Disconnected
-  - SpectralClustering
-  - Random
+  - vns
+  - min_node_cut
+  - disconnected
+  - spectral_clustering
+  - random
 
-splitter: VNS
+splitter: vns
 
 # nachos splitters will create a training set and a held-out set. If multiple
 # factor-disjoint sets are desired the splitter can be run recursively. Some
@@ -31,11 +31,11 @@ splitter: VNS
 num_splits: 2
 
 # Factor types so that the loader knows how to interpret the fields
-factor_types: [str, str, int] 
+factor_types: [str, str, float, float, float] 
  
 # The indices (0-indexed) of the fields, i.e., factors, that test set instances
 # should not share with instances in the training set.
-factor_idxs: [0, 1]
+factor_idxs: [1, 2]
 
 # Weights on the arcs connecting entries that are similar according to the
 # the factor in factor_idxs.
@@ -43,10 +43,10 @@ factor_weights: [1.0, 1.0]
 
 # The indices (0-indexed) of the fields, i.e., factors, that should be matched
 # in the training and teest sets according to a specified statistic.
-constraint_idxs: [2]
+constraint_idxs: [3, 4, 5]
 
 # Weights on the contraints applied
-constraint_weights: [1.0]
+constraint_weights: [1.0, 1.0, 5.0]
 
 # nachos uses a number of similarity functions for splitting  
 # Choices: set_intersection, boolean, cosine, gaussian 
@@ -72,19 +72,23 @@ constraints_list:
   - mean # minimize the difference in training and test set means
   - mean_tuple # make the means of the train and test sets (val1, val2)
   - kl # kl divergence between train and test
+  - sum
+  - sum_tuple
 
 # The chosen constraint
 constraints:
+  - mean_tuple
   - mean
+  - sum_tuple
 
 mean_tuple: [0.5, 0.5]
-kl_smooth: 1e-06 # Amount to smooth unseen values
-kl_direction: forward # forward, reverse, symmetric
+sum_tuple: [0.8, 0.2]
 
 # Optimizer parameters
 seed: 0
-max_iter: 200
+max_iter: 100
 
 # VNS parameters
 num_shake_neighborhoods: 4
-num_search_neighborhoods: 16 
+num_search_neighborhoods: 4
+max_neighbors: 1000

@@ -73,14 +73,21 @@ def test_splitter_connected(connected_eg):
         assert(scores[i] < scores[i-1])
     for idx_s, s in enumerate(split):
         constraint_stats = splitter.constraint_fn.stats(connected_eg, s)
-        print(constraint_stats)
+        print(f'Split {idx_s}: {constraint_stats}')
     test_sets = connected_eg.make_overlapping_test_sets(split)
     for idx_s, s in enumerate(test_sets):
-        constraint_stats = splitter.constraint_fn.stats(connected_eg, test_sets[s])
-        print(constraint_stats)
-    for i in range(len(test_sets)):
-        for j in range(len(test_sets)):
-            if i != j:
-                overlap_stats = connected_eg.overlap_stats(test_sets[i], test_sets[j])
-                print(f'{j} overlap with {i}')
-                print(overlap_stats)   
+        if len(test_sets[s]) > 0:
+            constraint_stats = splitter.constraint_fn.stats(connected_eg, test_sets[s])
+            print(f'Split {idx_s+2}: {constraint_stats}')
+        else:
+            print(f'Split {idx_s+2}: length = 0')
+    sets = {}
+    sets[0] = split[0]
+    sets[1] = split[1]
+    for i in range(2, len(test_sets)+2):
+        sets[i] = test_sets[i-2]
+    for i in range(0, len(sets)):
+        for j in range(0, len(sets)):
+            if i != j and len(sets[i]) > 0 and len(sets[j]) > 0:
+                overlap_stats = connected_eg.overlap_stats(sets[i], sets[j])
+                print(f'{j} overlap with {i}: {overlap_stats}')
