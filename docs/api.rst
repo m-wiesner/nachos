@@ -9,8 +9,9 @@ Data
 Data structures used for describing a dataset.
 
 .. autoclass:: nachos.data.Data.Dataset
-  :members:
-  :inherited-members:
+  :no-members:
+  :no-special-members:
+  :noindex:
 
 
 Similarity Functions
