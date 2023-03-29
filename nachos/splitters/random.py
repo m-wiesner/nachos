@@ -81,4 +81,4 @@ class Random(AbstractSplitter):
                 print(f"Iter {iter_num}: Best Score: {best_score:0.4f}")
                 scores.append(best_score)
                 best_split = split
-        return (best_split, scores)
+        return (collapse_factored_split(best_split), scores)

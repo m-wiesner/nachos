@@ -66,7 +66,13 @@ def random_slices():
 def test_make_graph(connected_eg, sim_fns):
     connected_eg.make_graph(sim_fns)  
     assert connected_eg.graph is not None
-
+    import networkx as nx
+    G_ = nx.compose_all(
+        connected_eg.graphs[n][f] 
+        for n in connected_eg.graphs 
+            for f in connected_eg.graphs[n]
+    )  
+    assert G_.edges == connected_eg.graph.edges
 
 def test_export_graph(connected_eg, sim_fns, filename):
     connected_eg.make_graph(sim_fns)

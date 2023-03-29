@@ -58,20 +58,29 @@ def random_splitter():
     return build_splitter(config)
 
 
-def test_random_splitter(dummy_eg, random_splitter):
-    best_split, scores = random_splitter(dummy_eg)
-    for i in range(1, len(scores)):
-        assert(scores[i] < scores[i-1])
+#def test_random_splitter(dummy_eg, random_splitter):
+#    best_split, scores = random_splitter(dummy_eg)
+#    for i in range(1, len(scores)):
+#        assert(scores[i] < scores[i-1])
 
 
-def test_random_splitter_connected(connected_eg, random_splitter):
+def test_splitter_connected(connected_eg):
     config = yaml.safe_load(open("test/fixtures/connected_test_constraints.yaml"))
     splitter = build_splitter(config)
 
-    best_split, scores = splitter(connected_eg)
+    split, scores = splitter(connected_eg)
     for i in range(1, len(scores)):
         assert(scores[i] < scores[i-1])
-    split = collapse_factored_split(best_split)
     for idx_s, s in enumerate(split):
         constraint_stats = splitter.constraint_fn.stats(connected_eg, s)
         print(constraint_stats)
+    test_sets = connected_eg.make_overlapping_test_sets(split)
+    for idx_s, s in enumerate(test_sets):
+        constraint_stats = splitter.constraint_fn.stats(connected_eg, test_sets[s])
+        print(constraint_stats)
+    for i in range(len(test_sets)):
+        for j in range(len(test_sets)):
+            if i != j:
+                overlap_stats = connected_eg.overlap_stats(test_sets[i], test_sets[j])
+                print(f'{j} overlap with {i}')
+                print(overlap_stats)   

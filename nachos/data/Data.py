@@ -6,9 +6,17 @@ if TYPE_CHECKING:
         SimilarityFunctions,
     )
 import networkx as nx
+from networkx.algorithms.connectivity import (
+    build_auxiliary_node_connectivity,
+    minimum_st_node_cut,
+)
+from networkx.algorithms.flow import build_residual_network
+
 import numpy as np
 import json
 import random
+from itertools import groupby
+from copy import deepcopy
 
 
 InvertedIndex = Dict[int, Dict[Any, set]] 
@@ -42,6 +50,10 @@ class Data(object):
 
     def __str__(self):
         return self.__repr__() 
+
+    def copy(self) -> Data:
+        factors = self.factors[:]
+        return Data(self.id, factors, field_names = self.field_names) 
 
 
 class Dataset(object):
@@ -95,6 +107,10 @@ class Dataset(object):
         # the graph, but it is useful to check if the graph is complete or
         # to get the number of connected components in the graph.
         self.graph: Optional[nx.Graph] = None
+        self.graphs = None
+        self.A = None # Auxiliary node connectivity graph
+        self.R = None # The residual node connectivity graph
+
         self.constraint_inv_idx: Optional[InvertedIndex] = None
         self.constraint_values = {n: None for n in range(len(self.constraint_idxs))}
         self.factor_inv_idx: Optional[InvertedIndex] = None
@@ -158,7 +174,10 @@ class Dataset(object):
                 Makes the graph representation of the dataset. This assumes
                 that the graph is undirected, an assumption which we may later
                 break, depending on the kinds of similarity functiosn we will
-                ultimately support.
+                ultimately support. It also makes subgraphs corresponding to
+                each individual factor value. This is like the inverted index.
+                You can lookup the neighbors of a factors. The graph and 
+                factors are stored in self.graph and self.graphs respectively. 
             
             Inputs
             -------------------------------------------
@@ -166,20 +185,73 @@ class Dataset(object):
                     compare records (i.e., data points)
                 :type simfuns: nachos.SimilarityFunctions.SimilarityFunctions
 
-            Returns
-            -------------------------------------------
-            :return: returns the graph
-            :rtype: numpy.ndarray
         '''
         triu_idxs = np.triu_indices(len(self.data), k=1)
+        self.graphs = {i: {} for i in range(len(self.factor_idxs))}
         G = nx.Graph()
         for i, j in zip(triu_idxs[0], triu_idxs[1]):
             # Cast to int to not confuse with np.int64
             i, j = int(i), int(j)
+            # Loop over each factor to store inverted index of factor to graph
+            # of data points with similar factors
+            for n in range(len(self.factor_idxs)):
+                factor_i = self.data[i].factors[n]
+                factor_j = self.data[j].factors[n]
+                # Since factors can be multivalued we need to loop over each
+                # value for a specific factor type, i.e., each speaker present
+                # in a recording. We instantiate the graph if a particular value
+                # has not been seen.
+
+                # Instantiating the graph for any unseen values in the n-th
+                # factor of the i-th data point
+                for f in factor_i:
+                    if f not in self.graphs[n]:
+                        self.graphs[n][f] = nx.Graph()
+                # Instantiating the graph for any unseen values in the n-th
+                # factor of the j-th data point
+                for f in factor_j:
+                    if f not in self.graphs[n]:
+                        self.graphs[n][f] = nx.Graph()
+                # Now we need to find the similar data points for each factor.
+                # Because factor values can be multivalued we need to loop
+                # through each value an compute similarity of a datapoints
+                # with respect to each factor separately.
+                for f in factor_i:
+                    u_i = self[i]
+                    u_i.data = u_i.data.copy()
+
+                    # Create a dummy Dataset with a single datapont and a 
+                    # single value for the the n-th factor of the one one point
+                    u_i.data[0].factors[n] = {f}
+                    # Now compute the similarity with respect to that one point
+                    # and add an edge to the value specific graph of the n-th
+                    # factor if the similarity is > 0
+                    sim = simfuns(self[j], u_i, n=n) 
+                    if sim > 0:
+                        self.graphs[n][f].add_edge(i, j, capacity=sim)
+                # Repeat the whole above process but for factor_j 
+                for f in factor_j:
+                    u_j = self[j]
+                    u_j.data = u_j.data.copy()
+                    # Create a dummy Dataset with a single datapont and a 
+                    # single value for the the n-th factor of the one one point
+                    u_j.data[0].factors[n] = {f}
+                    # Now compute the similarity with respect to that one point
+                    # and add an edge to the value specific graph of the n-th
+                    # factor if the similarity is > 0
+                    sim = simfuns(self[i], u_j, n=n) 
+                    if sim > 0:
+                        self.graphs[n][f].add_edge(i, j, capacity=sim)
+
+            # Now compute the normal similarity (summing the score across all 
+            # factors), and creat the edge in the global graph (that includes
+            # all the data points.
             sim = simfuns(self[i], self[j])
             if sim > 0:
                 G.add_edge(i, j, capacity=sim)
         self.graph = G
+        for n in range(len(self.factor_idxs)):
+            self.factor_values[n] = sorted(self.graphs[n].keys())
 
     def get_record(self, i: int) -> Any:
         return self.data[i].id
@@ -212,9 +284,9 @@ class Dataset(object):
         # Make sure to copy the lists so that we don't accidentally modify
         # the original
         if isinstance(i, int):
-            return self.subset_from_data([self.data[i]])
+            return self.subset_from_data([self.data[i].copy()])
         else:
-            return self.subset_from_data(self.data[i])
+            return self.subset_from_data(self.data[i].copy())
 
     def export_graph(self, filename) -> None:
         '''
@@ -313,8 +385,21 @@ class Dataset(object):
             Summary:
                 Returns the inverted index for the factors. In other words
                 inverted_index[n] = [value1, value2, ...], the set of value
-                seen for the n-th factor.
+                seen for the n-th factor. This is really not a particularly
+                useful function, as the inverted index computed in this way 
+                only works for the set_intersection similarity method. For other
+                types of similarity, such as cosine distance, self.make_graph()
+                will make a the graphs corresponding to each factor, and is 
+                really a better version of the inverted index created in this
+                function.
+
+                This function therefore exists mostly to mirror what the 
+                make_cosntraint_inverted_index function.
         '''
+        # We only need to run this if it has not yet been computed. Otherwise
+        # just skip this.
+        if self.factor_inv_idx is not None:
+            return
         inverted_index = {n: {} for n in range(len(self.factor_idxs))}
         for fid, x in self.factors.items():
             for n in range(len(self.factor_idxs)):
@@ -346,10 +431,6 @@ class Dataset(object):
                 and it's complement resulting from that index
             :rtype: Tuple[int, Tuple[set, set]]
         '''
-        if self.factor_inv_idx is None:
-            self.make_factor_inverted_index()
-
-        factor_values = self.factor_inv_idx[n]
         # To select a random subset we will select a random subsets from the
         # powerset of values. Each bit in the binary representation of the index
         # of one of these subsets can be interpretted as the presence of a 
@@ -357,19 +438,54 @@ class Dataset(object):
         # the emptyset or the full set of values because this puts all of the
         # data into a single set, and we want to form both training and test
         # partitions. This is why the random in random.randit() is from 1 to
-        # 2**len(factor_values) - 2.
-        subset_idx = random.randint(1, 2**len(factor_values) - 2)
-        subset_idx_binary = format(subset_idx, f'0{len(factor_values)}b')
+        # 2**len(factor_graphs) - 2.
+        subset_idx = random.randint(1, 2**len(self.graphs[n]) - 2)
+        return self.draw_split_from_factor(n, subset_idx) 
+
+    def draw_split_from_factor(self, n: int, idx: int) -> Tuple[int, Split]:
+        '''
+            Summary:
+                Like draw_random_split from factor, but draws the split
+                specified by an integer index, idx, which specifies the subset
+                of values from the powerset of values from factor n to use.
+            
+            Inputs
+            -----------------
+            :param n: the index of the factor in the list self.factor_idxs from
+                which to select
+            :type n: int
+            :param idx: The index in the powerset of the subset of values from
+                the n-th factor to use.
+            :type idx: int
+
+            Returns
+            ------------------
+            :return: The tuple of the index of the set from the powerset of
+                values and the datasets corresponding to the random split
+                and it's complement resulting from that index
+            :rtype: Tuple[int, Tuple[set, set]] 
+        '''
+        if self.graphs is None:
+            self.make_graph()
+
+        # Get the list of graphs (one per factor value) associated with the
+        # n-th factor.
+        factor_graphs = self.graphs[n]
+
+        subset_idx = idx
+        subset_idx_binary = format(subset_idx, f'0{len(factor_graphs)}b')
 
         include, exclude = [], []
         for i, j in enumerate(subset_idx_binary):
             if j == '1':
+                key = self.factor_values[n][int(i)]
                 include.append(
-                    factor_values[self.factor_values[n][int(i)]]
+                    [self.data[i].id for i in factor_graphs[key].nodes]
                 )
             elif j == '0':
+                key = self.factor_values[n][int(i)]
                 exclude.append(
-                    factor_values[self.factor_values[n][int(i)]]
+                    [self.data[i].id for i in factor_graphs[key].nodes] 
                 )
         subset_from_selected_factors = set().union(*include)
         subset_from_unselected_factors = set().union(*exclude)
@@ -389,6 +505,7 @@ class Dataset(object):
 
         return (subset_idx, (subset, not_subset,))
 
+    
     def draw_random_split(self) -> Tuple[List[int], FactoredSplit]:
         '''
             Summary:
@@ -424,7 +541,280 @@ class Dataset(object):
         '''
         random.seed(seed)
 
+    def nearby_splits(self, idxs: List[int], split: FactoredSplit) -> Generator[Tuple[List[int], FactoredSplit]]:
+        '''
+            Summary:
+                Make a generator over "neaby splits". These are splits that
+                are Hamming distance 1 away from the current split. By this we
+                mean if you concatenated the bit strings representing the
+                indices of the powersets of values for each factor, then any
+                bit string that differs in a single value.
 
+            Inputs
+            --------------------
+            :param idx: The indices into the powersets of the subset
+                corresponding to split
+            :type idxs: List[int]
+            :param split: a split (a factored split actually) around which we
+                want to find splits that are Hamming distance = 1 away
+            :type split: FactoredSplit
+
+            Returns
+            -----------------------
+            :return: a generator over the neighboring splits
+            :rtype: Generator[FactoredSplit]
+        '''
+        # We want to randomize the order of the factors that we are exploring
+        factor_order = list(range(len(self.factor_idxs)))
+        random.shuffle(factor_order)
+        for i in factor_order:
+            v_binary = format(idxs[i], f'0{len(self.graphs[i])}b')
+            for n in _1bit_different_numbers(v_binary):
+                subset_idx = int(n, 2)
+                new_idx, new_split = self.draw_split_from_factor(i, subset_idx)
+                indices = [idxs[j] if j != i else new_idx for j in range(len(self.factor_idxs))] 
+                subsets = [
+                    split[0][j] if j != i else new_split[0]
+                    for j in range(len(self.factor_idxs))
+                ]
+                not_subsets = [
+                    split[1][j] if j != i else new_split[1]
+                    for j in range(len(split[0]))
+                ]
+                yield (indices, (subsets, not_subsets)) 
+
+    def get_neighborhood(self,
+        idxs: List[int],
+        split: FactoredSplit,
+        l: int,
+        max_neighbors: int = 2000,
+    ) -> Generator[Tuple[List[int], FactoredSplit]]:
+            '''
+                Summary:
+                    Return a generator over all of the neighbors at distance l from
+                    split.
+    
+                Inputs
+                --------------------
+                :param idxs: The list of indices, for each factor into their
+                    respective powersets of the corresponding to the splits
+                :type idxs: List[int]
+                :param split: The split whose neighbors at distance l we want to
+                    generate.
+                :type split: FactoredSplit
+                :param l: The distance from split of the neighbors we would like to
+                    generate
+                :type l: int
+                :param max_neighbors: The maximum number of neighbors to explore
+                :type max_neighbors: int
+    
+                Returns
+                --------------------
+                :return: A generator over the neighbors at distance l from split
+                :rtype: Generator[FactoredSplit]
+            '''
+            # Initialize neighbors. 
+            neighbors = list(
+                map(lambda x: (x, 1), self.nearby_splits(idxs, split))
+            )
+            # For each neighbor we want to retreive all of their neighbors and
+            # repeat this process until we have explored up to the l-th degree of
+            # connections. Most of this while loop is just adding neighbors to
+            # explore to the list of neighbors we already need to explore. The
+            # base case (under the else statement) is where the neighbors actually
+            # are yielded.
+            num_neighbors = 0
+            while len(neighbors) > 0 and num_neighbors < max_neighbors:
+                (nearby_idxs, nearby_split), idx_l = neighbors.pop()
+                if idx_l < l:
+                    for x in self.nearby_splits(nearby_idxs, nearby_split):
+                        neighbors.append((x, idx_l + 1))
+                else:
+                    num_neighbors += 1
+                    yield (nearby_idxs, nearby_split)
+
+    def shake(self, idxs: List[int], split: FactoredSplit, k: int) -> Tuple[int, FactoredSplit]:
+        '''
+            Summary:
+                Return a random split from the neighborhood around split.
+
+            Inputs
+            --------------------
+            :param idx: The index o
+            :param split: The current split around which we will select a random
+                neighbor
+            :type split: FactoredSplit
+            :param k: The distance from the split form which our new split,
+                obtained by shaking will be drawn from. Kind of like a shake
+                distance
+            :type k: int
+
+            Return
+            ------------------------
+            :return: The randomly selected split from the neighborhood of split
+            :rtype: FactoredSplit
+        ''' 
+        generator = self.get_neighborhood(idxs, split, k)
+        return next(generator, None)
+
+    def draw_random_node_cut(self) -> Split:
+        '''
+            Summary:
+                Draw random, non-adjacenent verticies as source and target
+                nodes, and compute the minimum st-vertex cut. This cut may
+                result in > 2 components. In this case, randomly assign the
+                components to different splits.
+            
+            Returns
+            -------------------------
+            :return: the split of components
+            :rtype: Split     
+        '''
+        if self.A is not None:
+            self.A = build_auxiliary_node_connectivity(d.graph)
+            self.R = build_residual_network(A, 'capicity')
+              
+        nodes_are_adjacent = True
+        while nodes_are_adjacent:
+            sampled_nodes = random.sample(range(len(self.graph)), 2)
+            if sampled_nodes[1] not in self.graph.neighbors(sampled_nodes[0]):
+                nodes_are_adjacent = False
+
+        cut = minimum_st_node_cut(
+            self.graph, sampled_nodes[0], sampled_nodes[1],
+            auxiliary=self.A, residual=self.R,
+        ) 
+        H = deepcopy(self.graph)
+        for n in cut:
+            H.remove_node(n)
+        components = sorted(nx.connected_components(H), key=len, reverse=True)
+        num_components = len(components)
+        sequence = list(range(num_components))
+        random.shuffle(sequence)
+        include, exclude = [], []
+        # Assign component (if there are > 2) to include and exclude
+        for i, component_idx in enumerate(sequence):
+            component_ids = [self.data[j].id for j in components[component_idx]]
+            # Just make the last component part of exclude
+            if i == num_components - 1:
+                exclude.append(component_ids)
+                continue
+            if i % 2 == 0:
+                include.append(component_ids)
+                continue
+            if i % 2 == 1:
+                exclude.append(component_ids)
+
+        subset = set().union(*include)
+        not_subset = set().union(*exclude)
+        return (subset, not_subset)
+
+
+    def make_overlapping_test_sets(self, split: Split) -> List[set]:              
+        '''
+            Summary:
+                Takes a split of the dataset, i.e., two subsets of the dataset
+                that do not overlap in the specified factors, and from the
+                remaining data in the dataset not included in the split, creates
+                multiple test sets that have some overlap with respect to
+                one or more factors in the first of the two subsets in split.
+                
+                In general, there are 2^N different kinds of overlap when using
+                N factors. By overlap, we mean factors that are considered under
+                the similarity function used to create the graph. We can use
+                the factors specific graphs for this purpose.
+                
+            Inputs
+            ------------------------
+            :param split: The split (i.e., two subsets of the data sets) with
+                no factor overlap with respect to which we are making the
+                additional test sets.
+            :type split: Split
+            
+            Returns
+            ------------------------------
+            :return: Test sets
+            :rtype: List[set]
+        '''
+        N = len(self.factor_idxs)
+        # We first want to retrieve all data points that overlap with factors
+        # that were used in split[0]
+        data_w_overlapping_factors = {
+                i: [] for i in range(len(self.factor_idxs))
+        }
+        for key in split[0]:
+            for f_idx, factor in enumerate(self.factors[key]):
+                for f in factor:
+                    data_w_overlapping_factors[f_idx].append(
+                        [self.data[i].id for i in self.graphs[f_idx][f].nodes]
+                    )
+        
+        # We also want to find all of the data points that were not used
+        # in the split
+        unused_indices = [
+            i.id for i in self.data
+                if i.id not in split[0] and i.id not in split[1]
+        ]
+        
+        # Once we have all the used factors and unused data points we need to
+        # create splits containing overlap in only some of the factors  
+        subsets = {}
+        for idx in range(2**N):
+            # Create the binary representation for the kind of overlapping test
+            # set to generate. e.g., Overlapping in factor 0, but
+            # non-overlapping in factor 1 would be "01".
+            subset_binary = format(idx, f'0{N}b')
+            new_set = set(unused_indices)
+            for i, j in enumerate(subset_binary): #(ABC) 011 --> A and !B and !C
+                overlapping_set = set().union(*data_w_overlapping_factors[i])
+                if j == '0':
+                    new_set = new_set.intersection(overlapping_set)
+                elif j == '1':
+                    new_set = new_set.intersection(
+                        set(unused_indices).difference(overlapping_set)
+                    )
+                subsets[idx] = new_set 
+        return subsets
+
+    def overlap_stats(self, s1: set, s2: set) -> dict:
+        '''
+            Summary:
+                Compute the overlap s2 w/r s1 "stats" associated with each
+                factor.
+
+            Inputs
+            --------------------------
+            :param s1: The set with respect to which overlap will be computed
+            :type s1: set
+            :param s2: the set whose overlap is computed with respect to s1
+            :type s2: set
+
+            Returns
+            -----------------------------
+            :return: The dictionary of factors overlaps (s2 w/r to s1)
+            :rtype: dict
+        '''
+        data_w_overlapping_factors = {
+                i: [] for i in range(len(self.factor_idxs))
+        }
+        overlap_stats = {}
+        # Find the fraction of points in s1 that are overlapping w/r to s2
+        # in each factor. To do this we need to gather all the values for
+        # a specific fator in s2, and examine all the similar points to those
+        # factor values. Intersecting these points with the points from s2
+        # gives the fraction of points that are overlapped w / r to that factor
+        for d1 in s1:
+            for f_idx, factor in enumerate(self.factors[d1]):
+                for f in factor:
+                    data_w_overlapping_factors[f_idx].append(
+                        [self.data[i].id for i in self.graphs[f_idx][f].nodes]
+                    )
+                overlapping_points = s2.intersection(
+                    set().union(*data_w_overlapping_factors[f_idx])
+                )
+                overlap_stats[f_idx] = len(overlapping_points) / len(s2)
+        return overlap_stats
+        
 def collapse_factored_split(split: FactoredSplit) -> Split:
     '''
         Summary:
@@ -444,3 +834,28 @@ def collapse_factored_split(split: FactoredSplit) -> Split:
         :rtype: Split
     '''
     return (set.intersection(*split[0]), set.intersection(*split[1]))
+
+
+def _1bit_different_numbers(v: str) -> Generator[str]:
+        '''
+            Summary:
+                From a bit string v representing an index find all of the bit
+                strings (i.e. integrers) that differ by only 1 bit.
+        '''
+        # Special edge case for len(v) == 2. We need to use a 2-bit difference
+        # since otherwise, the empty set or full set will be returned and we
+        # do not want to include those.
+        if v == '01':
+            yield '10'
+        elif v == '10':
+            yield '01'
+        
+        sequence = list(range(len(v)))
+        random.shuffle(sequence)
+        for i in sequence:
+            new_val = list(v)
+            new_val[i] = '1' if v[i] == '0' else '0'
+            g = groupby(new_val, lambda x: x)
+            if not (next(g, True) and not next(g, False)):
+                yield ''.join(new_val)      
+
