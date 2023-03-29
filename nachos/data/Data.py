@@ -57,8 +57,7 @@ class Data(object):
 
 
 class Dataset(object):
-    '''
-        Summary:
+    """Summary:
             A class to store and manipulate the data and their associated
             factors and constraints. The structure we ultimately want is
             similar to an inverted index.
@@ -75,8 +74,7 @@ class Dataset(object):
                 },
                 ...   
             ]
-               
-    '''
+    """
     def __init__(self,
         data: List[Data],
         factor_idxs: List[int],
