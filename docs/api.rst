@@ -8,7 +8,7 @@ Data
 
 Data structures used for describing a dataset.
 
-.. automodule:: nachos.data
+.. autoclass:: nachos.data.Data.Dataset
   :members:
   :inherited-members:
 
