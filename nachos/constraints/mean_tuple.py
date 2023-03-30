@@ -27,6 +27,7 @@ class MeanTuple(Mean):
         r'''
             Summary:
                 Given a tuple
+
                 .. math::
                     \mu = \left(\mu_1, \mu_2\right)
 
