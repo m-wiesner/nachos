@@ -7,45 +7,45 @@ from typing import Any, Generator, Union
 class MeanTuple(Mean):
     '''
         Summary:
-            Defines the constraint on the mean value of a factor. The constraint  
+            Defines the constraint on the mean value of a factor. The constraint
             is that the mean for two datasets should be close to a specified
-            value. 
+            value.
     '''
     @classmethod
     def build(cls, conf: dict):
-        return cls(*conf['mean_tuple']) 
+        return cls(*conf['mean_tuple'])
 
     def __init__(self, s1_mean: Any, s2_mean: Any):
         super().__init__()
         self.s1_mean = s1_mean
         self.s2_mean = s2_mean
-          
+
     def __call__(self,
         c1: Union[list, Generator],
         c2: Union[list, Generator],
     ) -> float:
-        '''
+        f'''
             Summary:
                 Given a tuple
                 .. math::
                     \mu = \left(\mu_1, \mu_2\right)
-                
-                compute 
-                
+
+                compute
+
                 .. math::
                     \lvert \frac{1}{|c1|} \sum c1 - \mu_1 \rvert + \lvert \frac{1}{|c2|} \sum c2 - \mu_2 \rvert
-            
+
             Inputs
             -----------------------
             :param c1: the list of values to constrain associated with dataset 1
             :type c1: Union[list, Generator]
             :param c2: the list of values to constrain associated with dataset 2
             :type c2: Union[list, Generator]
-            
+
             Returns
             -----------------------
             :return: the constraint score (how close the constraints are met)
-            :rtype: float 
+            :rtype: float
         '''
         c1, c2 = list(c1), list(c2)
         return abs(self.stat(c1) - self.s1_mean) + abs(self.stat(c2) - self.s2_mean)

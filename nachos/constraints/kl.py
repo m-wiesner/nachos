@@ -11,28 +11,28 @@ class KL(AbstractConstraint):
     f'''
         Summary:
             Defines the constraint on the categorical distribution over values
-            between two datasets. The cost of mismatch is computed as the 
+            between two datasets. The cost of mismatch is computed as the
             kl-divergence between two sets. In general, the smaller
             set is the test set and we would like it to have specific
             characteristics w/r to the large (training) set. The forward kl,
             i.e.,
-            
-            The forward KL, i.e., 
+
+            The forward KL, i.e.,
             .. math::
-                kl\left(p \vert\vert q_\theta\right) 
-            
-            is mean seeking  
+                kl\left(p \vert\vert q_\theta\right)
+
+            is mean seeking
 
             cost = KL(d1_train || d2_test)
 
             This will encourge selecting data with good coverage of the dataset,
             including data points that may have been seen only occasionally in
-            the training data. See ReverseKL, Jeffrys for more information. 
+            the training data. See ReverseKL, Jeffrys for more information.
 
-            Reverse KL is 
+            Reverse KL is
             .. math::
                 kl\left(q_\theta \vert\vert p\right)
-            
+
             cost = KL(d2_test || d1_train)
 
             This encourages mode seeking behavior.
@@ -49,7 +49,7 @@ class KL(AbstractConstraint):
     def __init__(self, smooth: float = 0.000001, direction: str = 'forward'):
         super().__init__()
         self.smooth = smooth
-        self.direction = direction 
+        self.direction = direction
         self.vocab = None
 
     def __call__(self,
@@ -60,7 +60,7 @@ class KL(AbstractConstraint):
             Summary:
                 Computes the KL divergence between the empircal distributions
                 defined by values in c1 and values in c2.
-            
+
             Inputs
             ---------------------------
             :param c1: the values to constrain seen in dataset 1
@@ -88,7 +88,7 @@ class KL(AbstractConstraint):
         c1_counts = {v: self.smooth for v in vocab}
         c2_counts = {v: self.smooth for v in vocab}
         c1_total = self.smooth * len(vocab)
-        c2_total = self.smooth * len(vocab) 
+        c2_total = self.smooth * len(vocab)
         for item in c1:
             try:
                 for i in item:
@@ -97,7 +97,7 @@ class KL(AbstractConstraint):
                     if i not in self.vocab:
                         self.ocab.add(i)
                         c1_total += self.smooth
-                        c2_total += self.smooth 
+                        c2_total += self.smooth
                         c1_counts[i] = self.smooth
                         c2_counts[i] = self.smooth
                     c1_counts[i] += 1
@@ -108,7 +108,7 @@ class KL(AbstractConstraint):
                     c2_total += self.smooth
                     c1_counts[item] = self.smooth
                     c2_counts[item] = self.smooth
-                c1_counts[item] += 1  
+                c1_counts[item] += 1
         for item in c2:
             try:
                 for i in item:
@@ -127,15 +127,15 @@ class KL(AbstractConstraint):
                     c2_counts[item] = self.smooth
                     c1_counts[item] = self.smooth
                 c2_counts[item] += 1
-       
-        # Normalize each count by the total count to get a distribution 
+
+        # Normalize each count by the total count to get a distribution
         c1_dist = np.array(
             [v for k, v in sorted(c1_counts.items(), key=lambda x: x[0])]
         ) / c1_total
         c2_dist = np.array(
             [v for k, v in sorted(c2_counts.items(), key=lambda x: x[0])]
         ) / c2_total
-    
+
         # Return the appropriate direction kl
         if self.direction == "forward":
             return np.dot(c1_dist, np.log(c1_dist) - np.log(c2_dist))
@@ -143,7 +143,7 @@ class KL(AbstractConstraint):
             return np.dot(c2_dist, np.log(c2_dist) - np.log(c1_dist))
         if self.direction == "symmetric":
             return 0.5 * (
-                np.dot(c1_dist, np.log(c1_dist) - np.log(c2_dist)) + 
+                np.dot(c1_dist, np.log(c1_dist) - np.log(c2_dist)) +
                 np.dot(c2_dist, np.log(c2_dist) - np.log(c2_dist))
             )
-    
+
