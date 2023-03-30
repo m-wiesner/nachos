@@ -4,7 +4,7 @@ nachos.splitters package
 Submodules
 ----------
 
-nachos.splitters.abstract\_splitter module
+Abstract Splitter module
 ------------------------------------------
 
 .. automodule:: nachos.splitters.abstract_splitter
@@ -12,7 +12,7 @@ nachos.splitters.abstract\_splitter module
    :undoc-members:
    :show-inheritance:
 
-nachos.splitters.disconnected module
+Disconnected Components Splitter
 ------------------------------------
 
 .. automodule:: nachos.splitters.disconnected
@@ -20,7 +20,7 @@ nachos.splitters.disconnected module
    :undoc-members:
    :show-inheritance:
 
-nachos.splitters.min\_node\_cut module
+Minimum Node Cut Splitter
 --------------------------------------
 
 .. automodule:: nachos.splitters.min_node_cut
@@ -28,7 +28,7 @@ nachos.splitters.min\_node\_cut module
    :undoc-members:
    :show-inheritance:
 
-nachos.splitters.random module
+Random Search Splitter
 ------------------------------
 
 .. automodule:: nachos.splitters.random
@@ -36,7 +36,7 @@ nachos.splitters.random module
    :undoc-members:
    :show-inheritance:
 
-nachos.splitters.spectral\_clustering module
+Spectral Clustering Splitter
 --------------------------------------------
 
 .. automodule:: nachos.splitters.spectral_clustering
@@ -44,15 +44,15 @@ nachos.splitters.spectral\_clustering module
    :undoc-members:
    :show-inheritance:
 
-nachos.splitters.vns module
----------------------------
+Variable Neighborhood Search (VNS) splitter
+--------------------------------------------
 
 .. automodule:: nachos.splitters.vns
    :members:
    :undoc-members:
    :show-inheritance:
 
-Module contents
+Splitters
 ---------------
 
 .. automodule:: nachos.splitters
