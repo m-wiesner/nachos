@@ -22,27 +22,27 @@ class Mean(AbstractConstraint):
         c1: Union[list, Generator],
         c2: Union[list, Generator],
     ) -> float:
-        '''
+        f'''
             Summary:
-                Computes 
-                
+                Computes
+
                 .. math::
                     \lvert \frac{1}{|c1|} \sum c1 - \frac{1}{|c2|} \sum c2 \rvert
-            
+
             Inputs
             -----------------------
             :param c1: the list of values to constrain associated with dataset 1
             :type c1: Union[list, Generator]
             :param c2: the list of values to constrain associated with dataset 2
             :type c2: Union[list, Generator]
-            
+
             Returns
             -----------------------
             :return: the constraint score (how close the constraints are met)
-            :rtype: float 
+            :rtype: float
         '''
         return abs(self.stat(c1) - self.stat(c2))
-    
+
     def stat(self, c1: Union[list, Generator]) -> float:
         '''
             Summary:
@@ -50,7 +50,7 @@ class Mean(AbstractConstraint):
 
             Inputs
             ------------------
-            :param c1: the list of values over which to compute the mean 
+            :param c1: the list of values over which to compute the mean
         '''
         c1 = list(c1)
         # for multivalued problems, average values in c1

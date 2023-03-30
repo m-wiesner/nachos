@@ -7,9 +7,9 @@ from typing import Union, Generator
 class SumTuple(Sum):
     '''
         Summary:
-            Defines the constraint on the mean value of a factor. The constraint  
+            Defines the constraint on the mean value of a factor. The constraint
             is that the mean for two datasets should be close to a specified
-            value. 
+            value.
     '''
     @classmethod
     def build(cls, conf: dict):
@@ -24,23 +24,23 @@ class SumTuple(Sum):
         c1: Union[list, Generator],
         c2: Union[list, Generator],
     ) -> float:
-        '''
+        f'''
             Summary:
-                Computes 
-                
+                Computes
+
                 .. math::
                     \lvert \sum c1 - \mu_1\rvert + \lvert \sum c2 - \mu_2 \rvert
-            
+
             Inputs
             -----------------------
             :param c1: the list of values to constrain associated with dataset 1
             :type c1: Union[list, Generator]
             :param c2: the list of values to constrain associated with dataset 2
             :type c2: Union[list, Generator]
-            
+
             Returns
             -----------------------
             :return: the constraint score (how close the constraints are met)
-            :rtype: float 
+            :rtype: float
         '''
         return abs(self.stat(c1) - self.s1_sum) + abs(self.stat(c2) - self.s2_sum)
