@@ -12,12 +12,15 @@ __version__ = '0.0.1'
 install_requires = [
     'networkx',
     'lhotse',
+    'scikit-learn'
 ]
 
 setuptools.setup(
     name='nachos',
     version=__version__,
-
+    
+    packages=setuptools.find_packages(),
+    
     description='Nearly Automatic Creation of Held-out Splits',
     long_description=long_description,
     long_description_content_type="text/markdown",
