@@ -66,18 +66,12 @@ class Constraints(object):
         s: set,
     ) -> dict:
         '''
-            Summary:
-                Compute the "stats" associated with each constraint on the split.
+            Compute the "stats" associated with each constraint on the split.
         
-            Inputs
-            -----------------
             :param u: The Dataset from which a subset is drawn
             :type u: Dataset
             :param s: The proposed subset of the dataset
             :type s: set
-            
-            Returns
-            ------------------
             :return: dictionary of the scores for the set s according to the
                 constraints specified in this class
             :rtype: dict 
