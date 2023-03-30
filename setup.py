@@ -18,9 +18,7 @@ install_requires = [
 setuptools.setup(
     name='nachos',
     version=__version__,
-    
-    packages=setuptools.find_packages(),
-    
+
     description='Nearly Automatic Creation of Held-out Splits',
     long_description=long_description,
     long_description_content_type="text/markdown",
