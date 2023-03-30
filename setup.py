@@ -33,7 +33,6 @@ setuptools.setup(
     license='Apache License 2.0',
 
     python_requires='>=3.8',
-    packages=setuptools.find_packages(),
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
