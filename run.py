@@ -2,9 +2,6 @@ from nachos.data.Input import TSVLoader
 from nachos.constraints import build_constraints
 from nachos.similarity_functions import build_similarity_functions as build_sims
 from nachos.splitters import build_splitter
-from nachos.data.Data import FactoredSplit, collapse_factored_split
-import pytest
-from pathlib import Path
 import yaml
 
 
