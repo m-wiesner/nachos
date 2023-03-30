@@ -24,7 +24,7 @@ class MeanTuple(Mean):
         c1: Union[list, Generator],
         c2: Union[list, Generator],
     ) -> float:
-        f'''
+        r'''
             Summary:
                 Given a tuple
                 .. math::

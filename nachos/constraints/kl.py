@@ -8,7 +8,7 @@ import numpy as np
 
 @register('kl')
 class KL(AbstractConstraint):
-    f'''
+    r'''
         Summary:
             Defines the constraint on the categorical distribution over values
             between two datasets. The cost of mismatch is computed as the
