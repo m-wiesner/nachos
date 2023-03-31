@@ -55,21 +55,4 @@ class LhotseLoader(object):
             for s in new_sups:
                 supids.add(s.id)
         
-        # Define the fields to extract from the lhotse manifests
-        lhotse_fields = config['lhotse_fields']
-        grouping_field = config['lhotse_groupby']
-        groups = groupby(sups, lambda s: getattr(s, grouping_field))
-        field_names = [grouping_field, *lhotse_fields, 'duration', 'fraction']
-        data = []
-        factors = {}
-        for k, g in groups:
-            g_list = list(g)
-            factors[k] = [
-                set([getattr(s, f) for s in g_list]) for f in lhotse_fields
-            ]
-            factors[k].append(set([sum(s.duration for s in g_list)])) 
-        total_duration = sum(sum(f[-1]) for f in factors.values())
-        for k in factors:
-            factors[k].append(set([sum(factors[k][-1]) / total_duration]))
-            data.append(Data(k, factors[k], field_names=field_names))              
-        return Dataset(data, config['factor_idxs'], config['constraint_idxs']) 
+        return Dataset.from_supervisions_and_config(sups, config)

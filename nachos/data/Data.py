@@ -61,21 +61,94 @@ class Dataset(object):
     """Summary:
             A class to store and manipulate the data and their associated
             factors and constraints. The structure we ultimately want is
-            similar to an inverted index.
+            similar to an inverted index. This inverted index is effectively
+            stored when we create factor specific graphs when 
 
-            factors = [
-                {
-                    factor1_value1: [fid1, fid2, ...],
-                    factor1_value2: [fids, ...],
-                    ...
-                },
-                {
-                    factor2_value1: [...],
-                    factor2_value2: [...],
-                },
-                ...
-            ]
+            self.make_graph() 
+
+            is called.
+        :param data: the list of Data classes storing the data instances
+        :type data: List[Data]
+        :param factor_idxs: the list of integers specifying which fields in
+            data should be treated as factors
+        :type factor_idxs: List[int]
+        :param constraint_idxs: the list of integers specifying which fields
+            in data should be treated as constraints
+        :type constraint_idxs: List[int] 
     """
+    @classmethod
+    def from_supervisions_and_config(cls, supervisions, config):
+        '''
+            Summary:
+                Creates a dataset from lhotse supervisions.
+
+            :param supervisions: The lhotse supervisions
+            :type supervisions: SupervisionSet (defined in lhotse)
+            :param config: Path to a configurations file
+            :type config: str
+            :return: A dataset class from the supervisions
+            :rtype: Dataset
+        '''
+        # Define the fields to extract from the lhotse manifests
+        lhotse_fields = config['lhotse_fields']
+        grouping_field = config['lhotse_groupby']
+        groups = groupby(supervisions, lambda s: getattr(s, grouping_field))
+        field_names = [grouping_field, *lhotse_fields, 'duration', 'fraction']
+        return cls.from_supervisions(
+            supervisions,
+            lhotse_fields,
+            config['factor_idxs'],
+            config['constraint_idxs'],
+            groupby_field=grouping_field,
+        )
+           
+    @classmethod
+    def from_supervisions(cls, 
+        supervisions,
+        fields: List[str],
+        factor_idxs: List[int],
+        constraint_idxs: List[int],
+        groupby_field: str = 'recording_id',
+    ):
+        '''
+            Summary:
+                Creates a dataset from lhotse supervisions.
+
+            :param supervisions: The lhotse supervisions
+            :type supervisions: SupervisionSet (defined in lhotse)
+            :param fields: A list of the fieldnames to extract from the lhotse
+                supervisions
+            :type fields: List[str]
+            :param factor_idxs: A list of integers specifying which of the
+                fields to use as factors.
+            :type factor_idxs: List[int]
+            :param constraint_idxs: A list of integers specifying which of the
+                fields to use as constraints.
+            :type constraint_idxs: List[int]
+            :type config: str
+            :return: A dataset class from the supervisions
+            :rtype: Dataset
+        '''
+        # Define the fields to extract from the lhotse manifests
+        lhotse_fields = config['lhotse_fields']
+        grouping_field = config['lhotse_groupby']
+        groups = groupby(sups, lambda s: getattr(s, grouping_field))
+        field_names = [grouping_field, *lhotse_fields, 'duration', 'fraction']
+        data = []
+        factors = {}
+        for k, g in groups:
+            g_list = list(g)
+            factors[k] = [
+                set([getattr(s, f) for s in g_list]) for f in lhotse_fields
+            ]
+            factors[k].append(set([sum(s.duration for s in g_list)])) 
+        total_duration = sum(sum(f[-1]) for f in factors.values())
+        for k in factors:
+            factors[k].append(set([sum(factors[k][-1]) / total_duration]))
+            data.append(Data(k, factors[k], field_names=field_names))     
+        return cls(data, config['factor_idxs'], config['constraint_idxs'])
+
+    
     def __init__(self,
         data: List[Data],
         factor_idxs: List[int],
