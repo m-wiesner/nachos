@@ -8,7 +8,7 @@ import numpy as np
 
 @register('kl')
 class KL(AbstractConstraint):
-    f'''
+    r'''
         Summary:
             Defines the constraint on the categorical distribution over values
             between two datasets. The cost of mismatch is computed as the
@@ -18,6 +18,7 @@ class KL(AbstractConstraint):
             i.e.,
 
             The forward KL, i.e.,
+
             .. math::
                 kl\left(p \vert\vert q_\theta\right)
 
@@ -30,6 +31,7 @@ class KL(AbstractConstraint):
             the training data. See ReverseKL, Jeffrys for more information.
 
             Reverse KL is
+
             .. math::
                 kl\left(q_\theta \vert\vert p\right)
 
@@ -38,6 +40,7 @@ class KL(AbstractConstraint):
             This encourages mode seeking behavior.
 
             The Jeffry's divergence symmetrizes the KL divergence as
+
             .. math::
                 \frac{1}{2}\left[KL\left(p \vert\vert q_\theta\right) + KL\left(q_\theta \vert\vert p\right)\right]
 

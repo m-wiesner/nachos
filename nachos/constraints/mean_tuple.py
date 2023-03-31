@@ -24,9 +24,10 @@ class MeanTuple(Mean):
         c1: Union[list, Generator],
         c2: Union[list, Generator],
     ) -> float:
-        f'''
+        r'''
             Summary:
                 Given a tuple
+
                 .. math::
                     \mu = \left(\mu_1, \mu_2\right)
 

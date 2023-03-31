@@ -39,6 +39,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_rtd_theme",
     "sphinx_autodoc_typehints",
+    "sphinx.ext.mathjax"
     "autodocsumm",
 ]
 
@@ -71,7 +72,7 @@ pygments_style = "sphinx"
 autodoc_default_options = {
     "members": True,
     "member-order": "bysource",
-    "special-members": "__init__",
+    "special-members": "__init__,__call__",
     "undoc-members": True,
     "exclude-members": "__weakref__",
 }

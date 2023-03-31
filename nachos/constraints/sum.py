@@ -7,9 +7,9 @@ from typing import Union, Generator
 class Sum(AbstractConstraint):
     '''
         Summary:
-            Defines the constraint on the mean value of a factor. The constraint  
+            Defines the constraint on the mean value of a factor. The constraint
             is that the mean for two datasets should be close to a specified
-            value. 
+            value.
     '''
     @classmethod
     def build(cls, conf: dict):
@@ -19,24 +19,24 @@ class Sum(AbstractConstraint):
         c1: Union[list, Generator],
         c2: Union[list, Generator],
     ) -> float:
-        '''
+        r'''
             Summary:
-                Computes 
-                
+                Computes
+
                 .. math::
                     \lvert \sum c1 - \sum c2 \rvert
-            
+
             Inputs
             -----------------------
             :param c1: the list of values to constrain associated with dataset 1
             :type c1: Union[list, Generator]
             :param c2: the list of values to constrain associated with dataset 2
             :type c2: Union[list, Generator]
-            
+
             Returns
             -----------------------
             :return: the constraint score (how close the constraints are met)
-            :rtype: float 
+            :rtype: float
         '''
         return abs(self.stat(c1) - self.s1_sum) + abs(self.stat(c2) - self.s2_sum)
 
@@ -47,7 +47,7 @@ class Sum(AbstractConstraint):
 
             Inputs
             ------------------
-            :param c1: the list of values over which to compute the sum 
+            :param c1: the list of values over which to compute the sum
         '''
         c1 = list(c1)
         # for multivalued problems, average values in c1

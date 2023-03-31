@@ -22,7 +22,7 @@ class Mean(AbstractConstraint):
         c1: Union[list, Generator],
         c2: Union[list, Generator],
     ) -> float:
-        f'''
+        r'''
             Summary:
                 Computes
 
