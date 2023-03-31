@@ -13,8 +13,8 @@ Welcome to nachos's documentation!
    nachos.constraints
    nachos.data
    nachos
-   nachos.splitters
    nachos.similarity_functions
+   nachos.splitters
 
 Indices and tables
 ==================
