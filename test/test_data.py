@@ -1,4 +1,4 @@
-from nachos.data.Input import TSVLoader
+from nachos.data.Input import TSVLoader, LhotseLoader
 from nachos.similarity_functions import build_similarity_functions as build_sims
 import yaml
 import pytest
@@ -21,6 +21,14 @@ def connected_eg():
     config = yaml.safe_load(open("test/fixtures/config.yaml"))
     return TSVLoader.load("test/fixtures/connected_eg.tsv", config)
 
+@pytest.fixture()
+def connected_eg_lhotse():
+    config = yaml.safe_load(open("test/fixtures/config.yaml"))
+    sups_train = "test/fixtures/supervisions_train_intv.jsonl.gz"
+    sups_dev = "test/fixtures/supervisions_dev_a.jsonl.gz"
+
+    ds = LhotseLoader.load([sups_train, sups_dev], config,)
+    return ds
 
 @pytest.fixture()
 def dummy_eg():
@@ -61,6 +69,18 @@ def random_slices():
         step = random.randint(1, 4)
         slices.append(slice(start, stop, step))
     return slices
+
+
+def test_lhotse_make_graph(connected_eg_lhotse, sim_fns):
+    connected_eg_lhotse.make_graph(sim_fns)  
+    assert connected_eg_lhotse.graph is not None
+    import networkx as nx
+    G_ = nx.compose_all(
+        connected_eg_lhotse.graphs[n][f] 
+        for n in connected_eg_lhotse.graphs 
+            for f in connected_eg_lhotse.graphs[n]
+    )  
+    assert G_.edges == connected_eg_lhotse.graph.edges
 
 
 def test_make_graph(connected_eg, sim_fns):

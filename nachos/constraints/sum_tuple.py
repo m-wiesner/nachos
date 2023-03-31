@@ -13,10 +13,10 @@ class SumTuple(Sum):
     '''
     @classmethod
     def build(cls, conf: dict):
-        return cls(*conf['sum_tuple'])
+        return cls(*conf['sum_tuple'], reduction=conf['constraint_reduction'])
 
-    def __init__(self, s1_sum: float, s2_sum: float):
-        super().__init__()
+    def __init__(self, s1_sum: float, s2_sum: float, reduction: str = 'mean'):
+        super().__init__(reduction=reduction)
         self.s1_sum = s1_sum
         self.s2_sum = s2_sum
 

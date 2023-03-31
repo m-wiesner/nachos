@@ -14,10 +14,6 @@ class Mean(AbstractConstraint):
             Dataset class directly, this class works on the constraint values
             in that class.
     '''
-    @classmethod
-    def build(cls, conf: dict):
-        return cls()
-
     def __call__(self,
         c1: Union[list, Generator],
         c2: Union[list, Generator],
@@ -53,5 +49,5 @@ class Mean(AbstractConstraint):
             :param c1: the list of values over which to compute the mean
         '''
         c1 = list(c1)
-        # for multivalued problems, average values in c1
-        return float(sum(sum(c) / len(c) for c in c1)) / len(c1)
+        # for multivalued problems, reduce values in c1
+        return float(sum(self.reduce(c) for c in c1)) / len(c1)

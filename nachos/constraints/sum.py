@@ -11,10 +11,6 @@ class Sum(AbstractConstraint):
             is that the mean for two datasets should be close to a specified
             value.
     '''
-    @classmethod
-    def build(cls, conf: dict):
-        return cls()
-
     def __call__(self,
         c1: Union[list, Generator],
         c2: Union[list, Generator],
@@ -50,5 +46,5 @@ class Sum(AbstractConstraint):
             :param c1: the list of values over which to compute the sum
         '''
         c1 = list(c1)
-        # for multivalued problems, average values in c1
-        return float(sum(sum(c) / len(c) for c in c1))
+        # for multivalued problems, reduce values in c1
+        return float(sum(self.reduce(c) for c in c1))

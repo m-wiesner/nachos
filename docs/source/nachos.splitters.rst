@@ -4,7 +4,7 @@ nachos.splitters package
 Submodules
 ----------
 
-Abstract Splitter module
+Abstract Splitter
 ------------------------------------------
 
 .. automodule:: nachos.splitters.abstract_splitter
