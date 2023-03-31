@@ -119,5 +119,14 @@ associated with your dataset.
 Set the values in config.yaml to the desired values and then
 
 ```
-python run.py metadata config
+# Lhotse manifests
+python run.py test/fixtures/config.yaml test/fixtures/supervisions_train_intv.jsonl.gz test/fixtures/supervisions_dev_a.jsonl.gz
+
+# or
+
+# TSV file
+python run.py test/fixtures/connected_test_constraints.yaml test/fixtures/connected_fraction_constraints.tsv
+
+# In general
+python run.py config metadata_file
 ```

@@ -130,23 +130,21 @@ class Dataset(object):
             :rtype: Dataset
         '''
         # Define the fields to extract from the lhotse manifests
-        lhotse_fields = config['lhotse_fields']
-        grouping_field = config['lhotse_groupby']
-        groups = groupby(sups, lambda s: getattr(s, grouping_field))
-        field_names = [grouping_field, *lhotse_fields, 'duration', 'fraction']
+        groups = groupby(supervisions, lambda s: getattr(s, groupby_field))
+        field_names = [groupby_field, *fields, 'duration', 'fraction']
         data = []
         factors = {}
         for k, g in groups:
             g_list = list(g)
             factors[k] = [
-                set([getattr(s, f) for s in g_list]) for f in lhotse_fields
+                set([getattr(s, f) for s in g_list]) for f in fields
             ]
             factors[k].append(set([sum(s.duration for s in g_list)])) 
         total_duration = sum(sum(f[-1]) for f in factors.values())
         for k in factors:
             factors[k].append(set([sum(factors[k][-1]) / total_duration]))
             data.append(Data(k, factors[k], field_names=field_names))     
-        return cls(data, config['factor_idxs'], config['constraint_idxs'])
+        return cls(data, factor_idxs, constraint_idxs)
 
     
     def __init__(self,

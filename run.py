@@ -1,4 +1,4 @@
-from nachos.data.Input import TSVLoader
+from nachos.data.Input import TSVLoader, LhotseLoader
 from nachos.constraints import build_constraints
 from nachos.similarity_functions import build_similarity_functions as build_sims
 from nachos.splitters import build_splitter
@@ -9,7 +9,10 @@ import argparse
 def main(args):
     config = yaml.safe_load(open(args.config))
     splitter = build_splitter(config)
-    connected_eg = TSVLoader.load(args.metadata, config)
+    if config['format'] == 'tsv':
+        connected_eg = TSVLoader.load(args.metadata[0], config)
+    elif config['format'] == 'lhotse':
+        connected_eg = LhotseLoader.load(args.metadata, config)
     split, scores = splitter(connected_eg)
     for idx_s, s in enumerate(split):
         constraint_stats = splitter.constraint_fn.stats(connected_eg, s)
@@ -35,11 +38,12 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('metadata', type=str, help='path to the metadata file, '
-        '.tsv or lhotse manifest, that defines the data elements to be split.'
-    )
     parser.add_argument('config', type=str, help='path to the yaml config file'
         'defining the splitting hyperparameters.'
+    )
+    parser.add_argument('metadata', type=str, nargs='+',
+        help='path(s) to the metadata file(s), .tsv or lhotse manifests, that '
+        'define(s) the data elements to be split.'
     )
     args = parser.parse_args() 
     main(args)
