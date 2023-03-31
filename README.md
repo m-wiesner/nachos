@@ -126,7 +126,7 @@ Such a file might look like the following
 |ID6|s4|r1|1|1|0.0042|
 |ID7|s2,s4|r2|1|0|0.1|
 
-This file should be a table separated (.tsv) file and represents the metadata
+This file should be a tab-separated (.tsv) file that represents the metadata
 associated with your dataset.
 
 ## Running
