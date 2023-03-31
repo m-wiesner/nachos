@@ -83,6 +83,8 @@ operate on the set of prompts that a specific speaker reads. The constraints
 could be functions to ensure that the training and test partitions have matcehd
 gender, and are of specific sizes.
 
+![nachos structure](nachos_structure.png)
+
 ## Installation
 ```
 git clone https://github.com/m-wiesner/nachos.git
