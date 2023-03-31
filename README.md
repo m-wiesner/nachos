@@ -13,15 +13,15 @@ do not have any standard tools for creating these splits, and, with the
 proliferation of end-to-end neural models that attempt to jointly model
 the production of desired outputs directly from raw inputs, many released
 data splits, including the commonly used splits, are not designed to test model
-generalization in a meaningful way. In some community-wide speech recogntiion
+generalization in a meaningful way. In some community-wide speech recognition
 challenges, the provided test/development sets were drawn from speakers **not**
 seen in the training set but documents that **were** seen in the training set.
 
-Speech recognition practitioners have repurposed the Librispeech datasplits
+Speech recognition practitioners have also repurposed the datasplits, such as the Librispeech splits
 that were specifically designed for Hybrid ASR models, but which contain
-signficant overlap of source material with examples seen in the training set,
-meaning evaluation of end-to-end models trained and evaluated using these splits
-may not be a meaningful comparison.
+signficant overlap of source material with examples seen in the training set.
+Therefore, evaluation of end-to-end models trained and evaluated using these splits
+may not yield meaningful results.
 
 This toolkit is a python library designed to provide formal, reproducible, and
 "correct" methods for splitting datasets to avoid these problems. 
