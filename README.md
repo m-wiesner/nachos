@@ -95,11 +95,11 @@ element of the corpus (i.e., the one you are trying to split), and then a
 column for each field of metadata you have about each element in the corpus.
 These metadata could be prompt, speaker ID, accent, age, health status, duration, ...
 
-Such a file will look like the following
+Such a file might look like the following
 
 |id|spks|room|subj_gender|intv_gender|data_fraction|
 |---|---|---|---|---|---|
-|ID1|s1|r1|0|0.002|
+|ID1|s1|r1|0|0|0.002|
 |ID2|s2,s3|r1|1|0|0.00102|
 |ID3|s1,s3|r2|1|0|0.005|
 |ID4|s2|r2|1|1|0.02|
@@ -107,6 +107,8 @@ Such a file will look like the following
 |ID6|s4|r1|1|1|0.0042|
 |ID7|s2,s4|r2|1|0|0.1|
 
+This file should be a table separated (.tsv) file and represents the metadata
+associated with your dataset.
 
 ## Running
 
