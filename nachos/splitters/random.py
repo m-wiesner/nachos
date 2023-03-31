@@ -23,6 +23,7 @@ class Random(AbstractSplitter):
 
             .. math::
                     \mathcal{T}_{I} = \bigcap_{n=1}^N S_{n}\left[I\left(n\right)\right]
+                    
                     \mathcal{H}_I = \bigcap_{i=1}^N \overline{S}_{n}\left[I\left(n\right)\right]
 
             The search is performed randomly and the best scoring splits are
