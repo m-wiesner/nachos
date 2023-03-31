@@ -45,7 +45,7 @@ To come ...
 
 The core idea behind this splitting tool is to model data as a graph. Each
 vertex in the graph represents a unit of data — be it a sentence, a recording,
-a group of sentences uttered by a speaker speaker, or a group of utterances
+a group of sentences uttered by a speaker, or a group of utterances
 consisting of the same sentence uttered by different speakers — and edges
 between vertices indicate that those units of data are similar to each other.
 By similar, we mean that there exists some underlying factor that relates the
