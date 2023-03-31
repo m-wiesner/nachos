@@ -12,12 +12,15 @@ __version__ = '0.0.1'
 install_requires = [
     'networkx',
     'lhotse',
+    'scikit-learn'
 ]
 
 setuptools.setup(
     name='nachos',
     version=__version__,
-
+    
+    packages=setuptools.find_packages(),
+    
     description='Nearly Automatic Creation of Held-out Splits',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -30,7 +33,6 @@ setuptools.setup(
     license='Apache License 2.0',
 
     python_requires='>=3.8',
-    packages=setuptools.find_packages(),
 
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
