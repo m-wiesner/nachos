@@ -19,6 +19,7 @@ Disconnected Components Splitter
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Minimum Node Cut Splitter
 --------------------------------------
@@ -27,6 +28,7 @@ Minimum Node Cut Splitter
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Random Search Splitter
 ------------------------------
@@ -35,6 +37,7 @@ Random Search Splitter
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Spectral Clustering Splitter
 --------------------------------------------
@@ -43,6 +46,7 @@ Spectral Clustering Splitter
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Variable Neighborhood Search (VNS) splitter
 --------------------------------------------
@@ -51,6 +55,7 @@ Variable Neighborhood Search (VNS) splitter
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Splitters
 ---------------

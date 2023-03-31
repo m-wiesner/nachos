@@ -11,6 +11,7 @@ Constraints
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Abstract Constraint
 ----------------------------------------------
@@ -19,6 +20,7 @@ Abstract Constraint
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 KL Divergence
 ----------------------------
@@ -27,6 +29,7 @@ KL Divergence
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Mean
 ------------------------------
@@ -35,6 +38,7 @@ Mean
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Mean Tuple
 -------------------------------------
@@ -43,6 +47,7 @@ Mean Tuple
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Sum
 -----------------------------
@@ -51,6 +56,7 @@ Sum
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Sum Tuple
 ------------------------------------
@@ -59,6 +65,7 @@ Sum Tuple
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Module contents
 ---------------

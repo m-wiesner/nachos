@@ -11,6 +11,8 @@ SimilarityFunctions
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
+ 
 
 AbstractSimilarity
 --------------------------------------------------------
@@ -19,6 +21,7 @@ AbstractSimilarity
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Boolean Similarity
 -------------------------------------------
@@ -27,6 +30,7 @@ Boolean Similarity
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Cosine Similarity
 ------------------------------------------
@@ -35,6 +39,7 @@ Cosine Similarity
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Gaussian Similarity
 --------------------------------------------
@@ -43,6 +48,7 @@ Gaussian Similarity
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Set Intersection Similarity
 -----------------------------------------------------
@@ -51,6 +57,7 @@ Set Intersection Similarity
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Module contents
 ---------------
