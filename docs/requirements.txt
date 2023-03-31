@@ -3,3 +3,4 @@ sphinx_rtd_theme
 sphinx==4.2.0
 sphinx-click==3.0.1
 sphinx-autodoc-typehints==1.12.0
+autodocsumm

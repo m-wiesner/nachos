@@ -13,7 +13,7 @@
 import os
 import sys
 import sphinx_rtd_theme
-
+import autodocsumm
 
 
 # -- Project information -----------------------------------------------------
@@ -39,8 +39,12 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_rtd_theme",
     "sphinx_autodoc_typehints",
+    "autodocsumm",
 ]
 
+autodoc_default_options = {
+        'autosummary': True,
+}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
