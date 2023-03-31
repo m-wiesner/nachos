@@ -20,7 +20,7 @@ class KL(AbstractConstraint):
             The forward KL, i.e.,
 
             .. math::
-                kl\left(p \vert\vert q_\theta\right)
+                KL\left(p \vert\vert q_\theta\right)
 
             is mean seeking
 
@@ -33,7 +33,7 @@ class KL(AbstractConstraint):
             Reverse KL is
 
             .. math::
-                kl\left(q_\theta \vert\vert p\right)
+                KL\left(q_\theta \vert\vert p\right)
 
             cost = KL(d2_test || d1_train)
 
