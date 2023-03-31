@@ -13,7 +13,7 @@ import random
 
 @register("random")
 class Random(AbstractSplitter):
-    '''
+    r'''
         Summary:
             Defines the random search splitter. This splitter works by randomly
             selecting a subset of values for each of the factors to include in
