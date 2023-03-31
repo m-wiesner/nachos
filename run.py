@@ -3,13 +3,13 @@ from nachos.constraints import build_constraints
 from nachos.similarity_functions import build_similarity_functions as build_sims
 from nachos.splitters import build_splitter
 import yaml
+import argparse
 
 
-def main():
-    config = yaml.safe_load(open("config.yaml"))
+def main(args):
+    config = yaml.safe_load(open(args.config))
     splitter = build_splitter(config)
-    config = yaml.safe_load(open("test/fixtures/connected_test_constraints.yaml"))
-    connected_eg = TSVLoader.load("test/fixtures/connected_fraction_constraints.tsv", config)
+    connected_eg = TSVLoader.load(args.metadata, config)
     split, scores = splitter(connected_eg)
     for idx_s, s in enumerate(split):
         constraint_stats = splitter.constraint_fn.stats(connected_eg, s)
@@ -34,4 +34,12 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('metadata', type=str, help='path to the metadata file, '
+        '.tsv or lhotse manifest, that defines the data elements to be split.'
+    )
+    parser.add_argument('config', type=str, help='path to the yaml config file'
+        'defining the splitting hyperparameters.'
+    )
+    args = parser.parse_args() 
+    main(args)

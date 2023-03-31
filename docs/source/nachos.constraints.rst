@@ -4,7 +4,7 @@ nachos.constraints package
 Submodules
 ----------
 
-nachos.constraints.Constraints module
+Constraints
 -------------------------------------
 
 .. automodule:: nachos.constraints.Constraints
@@ -12,7 +12,7 @@ nachos.constraints.Constraints module
    :undoc-members:
    :show-inheritance:
 
-nachos.constraints.abstract\_constraint module
+Abstract Constraint
 ----------------------------------------------
 
 .. automodule:: nachos.constraints.abstract_constraint
@@ -20,7 +20,7 @@ nachos.constraints.abstract\_constraint module
    :undoc-members:
    :show-inheritance:
 
-nachos.constraints.kl module
+KL Divergence
 ----------------------------
 
 .. automodule:: nachos.constraints.kl
@@ -28,7 +28,7 @@ nachos.constraints.kl module
    :undoc-members:
    :show-inheritance:
 
-nachos.constraints.mean module
+Mean
 ------------------------------
 
 .. automodule:: nachos.constraints.mean
@@ -36,7 +36,7 @@ nachos.constraints.mean module
    :undoc-members:
    :show-inheritance:
 
-nachos.constraints.mean\_tuple module
+Mean Tuple
 -------------------------------------
 
 .. automodule:: nachos.constraints.mean_tuple
@@ -44,7 +44,7 @@ nachos.constraints.mean\_tuple module
    :undoc-members:
    :show-inheritance:
 
-nachos.constraints.sum module
+Sum
 -----------------------------
 
 .. automodule:: nachos.constraints.sum
@@ -52,7 +52,7 @@ nachos.constraints.sum module
    :undoc-members:
    :show-inheritance:
 
-nachos.constraints.sum\_tuple module
+Sum Tuple
 ------------------------------------
 
 .. automodule:: nachos.constraints.sum_tuple
