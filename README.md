@@ -85,6 +85,21 @@ gender, and are of specific sizes.
 
 <img src="nachos_structure.png"  width="40%" height="40%">
 
+In general a splitter splits the data into 3 portions. The first portion can be
+used as a training set. The second portion can be used as a test set. The 
+remaining data, i.e., the third portion is all of the remaining data which may
+have some amount of overlap in some factor with the training data, or its
+inclusions caused the training and test sets to deviate too far from the
+desired constraints. That doesn't mean that the data cannot be used.
+
+In nachos, we automatically partition the remaining data in all of the
+sets that have overlap, or not, with respect to each factors. These datasets
+could then be used to test generalization to specific factors, or sets of
+factors rather than to all of them simultanesouly. The caveat with these sets
+is that we generally have no control over their sizes, so some may be very small,
+and furthermore, any other constraints we imposed on our splits were specifically
+not applied to the remaining data.
+
 ## Installation
 ```
 git clone https://github.com/m-wiesner/nachos.git
