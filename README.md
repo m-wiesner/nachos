@@ -57,7 +57,7 @@ a splits then becomes to either find, or create disconnected components in the
 graph. **Factors** are the properties of the data for which we wish to test
 generalization.
 
-<img src="nachos_graphs.png"  width="70%" height="70%">
+<img src="nachos_graphs.png"  width="50%" height="50%">
 
 In general, we may wish for these disconnected components to also have certain
 properties: they should be close to a specified size, they should have similar
@@ -82,6 +82,8 @@ speaker field associated with a data point and a set similarity function could
 operate on the set of prompts that a specific speaker reads. The constraints
 could be functions to ensure that the training and test partitions have matcehd
 gender, and are of specific sizes.
+
+<img src="nachos_structure.png"  width="40%" height="40%">
 
 ## Installation
 ```
