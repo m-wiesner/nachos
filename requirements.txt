@@ -1,0 +1,5 @@
+lhotse
+numpy
+tqdm
+networkx
+scikit-learn
