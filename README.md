@@ -57,6 +57,8 @@ a splits then becomes to either find, or create disconnected components in the
 graph. **Factors** are the properties of the data for which we wish to test
 generalization.
 
+![nachos graphs](nachos_graphs.png)
+
 In general, we may wish for these disconnected components to also have certain
 properties: they should be close to a specified size, they should have similar
 distributions of speakers, genders, or perhaps durations. We call these kinds of
