@@ -31,5 +31,5 @@ suited for different tasks. For now we have implemented:
 Set the values in config.yaml to the desired values and then
 
 ```
-python run.py
+python run.py metadata config
 ```

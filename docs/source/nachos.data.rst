@@ -4,7 +4,7 @@ nachos.data package
 Submodules
 ----------
 
-nachos.data.Data module
+Data
 -----------------------
 
 .. automodule:: nachos.data.Data
@@ -12,7 +12,7 @@ nachos.data.Data module
    :undoc-members:
    :show-inheritance:
 
-nachos.data.Input module
+Input
 ------------------------
 
 .. automodule:: nachos.data.Input

@@ -13,6 +13,21 @@ import random
 
 @register("random")
 class Random(AbstractSplitter):
+    '''
+        Summary:
+            Defines the random search splitter. This splitter works by randomly
+            selecting a subset of values for each of the factors to include in
+            a "training" set. The complements of these sets are also kept 
+            track of and splits are created by intersection all of the selected
+            splits for each factor.
+
+            .. math::
+                    \mathcal{T}_{I} = \bigcap_{n=1}^N S_{n}\left[I\left(n\right)\right]
+                    \mathcal{H}_I = \bigcap_{i=1}^N \overline{S}_{n}\left[I\left(n\right)\right]
+
+            The search is performed randomly and the best scoring splits are
+            kept.
+    '''
     @classmethod
     def build(cls, conf: dict):
         return cls(

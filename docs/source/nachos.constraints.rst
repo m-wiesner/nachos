@@ -4,61 +4,68 @@ nachos.constraints package
 Submodules
 ----------
 
-nachos.constraints.Constraints module
+Constraints
 -------------------------------------
 
 .. automodule:: nachos.constraints.Constraints
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
-nachos.constraints.abstract\_constraint module
+Abstract Constraint
 ----------------------------------------------
 
 .. automodule:: nachos.constraints.abstract_constraint
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
-nachos.constraints.kl module
+KL Divergence
 ----------------------------
 
 .. automodule:: nachos.constraints.kl
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
-nachos.constraints.mean module
+Mean
 ------------------------------
 
 .. automodule:: nachos.constraints.mean
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
-nachos.constraints.mean\_tuple module
+Mean Tuple
 -------------------------------------
 
 .. automodule:: nachos.constraints.mean_tuple
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
-nachos.constraints.sum module
+Sum
 -----------------------------
 
 .. automodule:: nachos.constraints.sum
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
-nachos.constraints.sum\_tuple module
+Sum Tuple
 ------------------------------------
 
 .. automodule:: nachos.constraints.sum_tuple
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Module contents
 ---------------

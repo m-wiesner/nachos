@@ -4,53 +4,60 @@ nachos.similarity\_functions package
 Submodules
 ----------
 
-nachos.similarity\_functions.SimilarityFunctions module
+SimilarityFunctions
 -------------------------------------------------------
 
 .. automodule:: nachos.similarity_functions.SimilarityFunctions
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
+ 
 
-nachos.similarity\_functions.abstract\_similarity module
+AbstractSimilarity
 --------------------------------------------------------
 
 .. automodule:: nachos.similarity_functions.abstract_similarity
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
-nachos.similarity\_functions.boolean module
+Boolean Similarity
 -------------------------------------------
 
 .. automodule:: nachos.similarity_functions.boolean
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
-nachos.similarity\_functions.cosine module
+Cosine Similarity
 ------------------------------------------
 
 .. automodule:: nachos.similarity_functions.cosine
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
-nachos.similarity\_functions.gaussian module
+Gaussian Similarity
 --------------------------------------------
 
 .. automodule:: nachos.similarity_functions.gaussian
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
-nachos.similarity\_functions.set\_intersection module
+Set Intersection Similarity
 -----------------------------------------------------
 
 .. automodule:: nachos.similarity_functions.set_intersection
    :members:
    :undoc-members:
    :show-inheritance:
+   :special-members: __call__
 
 Module contents
 ---------------
