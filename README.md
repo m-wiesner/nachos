@@ -45,7 +45,7 @@ To come ...
 
 The core idea behind this splitting tool is to model data as a graph. Each
 vertex in the graph represents a unit of data — be it a sentence, a recording,
-a group of sentences uttered by a speaker speaker, or a group of utterances
+a group of sentences uttered by a speaker, or a group of utterances
 consisting of the same sentence uttered by different speakers — and edges
 between vertices indicate that those units of data are similar to each other.
 By similar, we mean that there exists some underlying factor that relates the
@@ -126,7 +126,7 @@ Such a file might look like the following
 |ID6|s4|r1|1|1|0.0042|
 |ID7|s2,s4|r2|1|0|0.1|
 
-This file should be a table separated (.tsv) file and represents the metadata
+This file should be a tab-separated (.tsv) file that represents the metadata
 associated with your dataset.
 
 ## Running
