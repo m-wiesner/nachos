@@ -167,9 +167,9 @@ Running nachos depends on the following 8. steps/choices:
 ### Metadata, Similarity, and Constraints
 In general, the values specified for the metadata will decide what kind of similarity and constraint funtions to use. For instance, if I have specified that I would like a speaker disjoint train/test split, and the speaker field takes sets of speakers as values, then the obvious similarity function to use for that factor is the **set_intersection** function, which measures the overlap of two sets. So if recording #1 has speakers {s1, s2, s3} and recording #2 has speakers {s1, s3, s4}, the overlap between these sets would be 2.
 
-If on the other hand the metadata were specified in terms of x-vectors for each speaker, the similarity used might be the thresholded **cosine** similarity. In this case, the similarity would be 
+If on the other hand the metadata were specified in terms of x-vectors for each speaker, i.e., vectors $s_1, s_2$, then the similarity used might be the thresholded **cosine** similarity. In this case, the similarity would be 
 
-$$s1^Ts2$$ 
+$$s_1^Ts)2$$ 
 
 assuming the x-vectors were normalized to have unit magnitude.
 
