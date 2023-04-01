@@ -201,3 +201,8 @@ Split 0 is by definition the selected set, and Split 1 is the "heldout" set with
 ```
 sum_tuple: [0.8, 0.2]
 ```
+
+## A Note of Caution
+Some of these algorithms currently naively construct the dataset graph, which can take a long time even for modest numbers of "records", i.e., the vertices in the graph, or units of data that we are splitting. One future update will be to make some of the graph processing more scalable. The search algorithms can also become fairly slow when using larger amounts of data. For these reasons we do not recommend using individual utterances as the data units to split, but rather some grouping of them that will limit the number of nodes in the graph to a few thousand.
+
+In practice we can run our splitting algorithms on Librispeech sized corpora in 1-3 hours, where we used chapters as the data unit for splitting. That example is include in test/fixtures/disconnected_fraction_eg.tsv and has about 6,000 entries. On smaller corpora, an example of which we have also included in test/fixtures/connected_fraction_constraints_eg.tsv with 450 entires, the splitting is very fast. Again much of this depends on the underlying structure of the graph, and the number of factors and constraints used. Thus far the splitting algorithms have scaled sufficiently well for our use-cases, but we suspect that applying similar technique to much larger dataset, which is a goal we ultimately have, may require some refactoring of the graph-based algorithms.
