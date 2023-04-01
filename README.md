@@ -169,7 +169,7 @@ In general, the values specified for the metadata will decide what kind of simil
 
 If on the other hand the metadata were specified in terms of x-vectors for each speaker, the similarity used might be the thresholded **cosine** similarity. In this case, the similarity would be 
 
-$$\frac{s1^Ts2}$$ 
+$$s1^Ts2$$ 
 
 assuming the x-vectors were normalized to have unit magnitude.
 
