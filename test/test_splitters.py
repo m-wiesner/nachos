@@ -68,10 +68,23 @@ def random_splitter():
     return build_splitter(config)
 
 
-#def test_random_splitter(dummy_eg, random_splitter):
-#    best_split, scores = random_splitter(dummy_eg)
-#    for i in range(1, len(scores)):
-#        assert(scores[i] < scores[i-1])
+def test_random_splitter(dummy_eg, random_splitter):
+    best_split, scores = random_splitter(dummy_eg)
+    for i in range(1, len(scores)):
+        assert(scores[i] <= scores[i-1])
+
+
+def test_random_splitter_kl():
+    config = yaml.safe_load(open("test/fixtures/test_kl.yaml"))
+    constraints = build_constraints(config)
+    ds = TSVLoader.load("test/fixtures/dummy_kl.tsv", config)
+    splitter = build_splitter(config)
+    best_split, scores = splitter(ds)
+    for i in range(1, len(scores)):
+        assert(scores[i] <= scores[i-1])
+    assert(
+        best_split == ({'b', 'g', 'c'}, {'a', 'e', 'd'})
+    ) 
 
 
 def test_splitter_connected(connected_eg):

@@ -41,3 +41,15 @@ def test_constraints_n(dummy_eg, constraints):
         and constraints(dummy_eg, ({'a', 'b'}, {'c', 'd', 'e'}), n=0) == 1
         and constraints(dummy_eg, ({'a', 'b'}, {'c', 'd'}), n=1) == 5.75
     )
+
+
+def test_kl():
+    # Try to split on speaker and match the prompt distribution
+    config = yaml.safe_load(open("test/fixtures/test_kl.yaml"))
+    constraints = build_constraints(config)
+    ds = TSVLoader.load("test/fixtures/dummy_kl.tsv", config)
+    assert (
+        constraints(ds, ({'a', 'b', 'c'}, {'d', 'e', 'f'})) != 0
+        and constraints(ds, ({'a'}, {'b'})) == 0   
+        and constraints(ds, ({'a', 'c', 'e'}, {'b', 'd', 'f'})) == 0
+    )

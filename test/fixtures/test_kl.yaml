@@ -1,0 +1,27 @@
+format: tsv
+factor_types: [str, str, float]
+splitter: random
+num_splits: 2
+factor_idxs: [1]
+factor_weights: [1.0]
+constraint_idxs: [2]
+constraint_weights: [1.0]
+similarity_functions:
+  - set_intersection
+ 
+# The chosen constraint
+constraints:
+  - kl
+
+constraint_reduction: 'mean'
+kl_smooth: 0.1
+kl_direction: symmetric
+
+# Optimizer parameters
+seed: 0
+max_iter: 200
+
+# VNS parameters
+num_shake_neighborhoods: 2
+num_search_neighborhoods: 2 
+max_neighbors: 1000

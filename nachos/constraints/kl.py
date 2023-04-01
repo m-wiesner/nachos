@@ -53,7 +53,7 @@ class KL(AbstractConstraint):
         super().__init__()
         self.smooth = smooth
         self.direction = direction
-        self.vocab = None
+        self.vocab = set()
 
     def __call__(self,
         c1: Union[list, Generator],
@@ -76,34 +76,28 @@ class KL(AbstractConstraint):
             :return: how closely (0 is best) the sets c1, c2 satisfy the constraint
             :rtype: float
         '''
-        # Get vocab. In general, c1 and c2 should be lists of sets
-        if self.vocab is None:
-            vocab = set()
-            for item in chain(c1, c2):
-                try:
-                    for i in item:
-                        vocab.add(i)
-                except TypeError:
-                    vocab.add(item)
-            self.vocab = vocab
-
-        # Get counts (i.e., distributions) for set1 and set2
-        c1_counts = {v: self.smooth for v in vocab}
-        c2_counts = {v: self.smooth for v in vocab}
-        c1_total = self.smooth * len(vocab)
-        c2_total = self.smooth * len(vocab)
+        # Get counts (i.e., distributions) for set1 and set2. We build the
+        # vocabulary organically as it is seen. If there are sets at the
+        # beginning that don't cover the vocabulary, we might underestimate the
+        # true KL-divergence, and these values are not technically comparable
+        # accross iterations.
+        c1_counts = {v: self.smooth for v in self.vocab}
+        c2_counts = {v: self.smooth for v in self.vocab}
+        c1_total = self.smooth * len(self.vocab)
+        c2_total = self.smooth * len(self.vocab)
         for item in c1:
             try:
                 for i in item:
                     # if i wasn't seen in the vocab,
                     # add it with count of self.smooth to both c1 and c2 counts
                     if i not in self.vocab:
-                        self.ocab.add(i)
+                        self.vocab.add(i)
                         c1_total += self.smooth
                         c2_total += self.smooth
                         c1_counts[i] = self.smooth
                         c2_counts[i] = self.smooth
                     c1_counts[i] += 1
+                    c1_total += 1
             except TypeError:
                 if item not in self.vocab:
                     self.vocab.add(item)
@@ -112,6 +106,7 @@ class KL(AbstractConstraint):
                     c1_counts[item] = self.smooth
                     c2_counts[item] = self.smooth
                 c1_counts[item] += 1
+                c1_total += 1
         for item in c2:
             try:
                 for i in item:
@@ -122,6 +117,7 @@ class KL(AbstractConstraint):
                         c2_counts[i] = self.smooth
                         c1_counts[i] = self.smooth
                     c2_counts[i] += 1
+                    c2_total += 1
             except TypeError:
                 if item not in self.vocab:
                     self.vocab.add(item)
@@ -130,6 +126,7 @@ class KL(AbstractConstraint):
                     c2_counts[item] = self.smooth
                     c1_counts[item] = self.smooth
                 c2_counts[item] += 1
+                c2_total += 1
 
         # Normalize each count by the total count to get a distribution
         c1_dist = np.array(
@@ -147,6 +144,9 @@ class KL(AbstractConstraint):
         if self.direction == "symmetric":
             return 0.5 * (
                 np.dot(c1_dist, np.log(c1_dist) - np.log(c2_dist)) +
-                np.dot(c2_dist, np.log(c2_dist) - np.log(c2_dist))
+                np.dot(c2_dist, np.log(c2_dist) - np.log(c1_dist))
             )
+        raise ValueError(f"An invalid direction {self.direction} was likely"
+            f" used. Please choose from ['forward', 'reverse', 'symmetric'"
+        )
 

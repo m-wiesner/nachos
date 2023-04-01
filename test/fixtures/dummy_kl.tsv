@@ -1,0 +1,8 @@
+id	speaker	prompt 
+a	s1	0
+b	s2	0
+c	s2	1
+d	s3	1
+e	s3	2
+f	s1,s4	2
+g	s4	2
