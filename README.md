@@ -196,4 +196,8 @@ Split 3: {'fraction': 0.0275, 'length': 8}
 1 overlap with 3: {'speaker': 0.0}
 ```
 
-Split 0 is by definition the selected set, and Split 1 is the "heldout" set with respect to Split 0. The remaining splits come from the discarded data and have different kinds of overlapping factors with respect to Spit 0. The values of the constraints for split are printed along with the number of data units in each split. Finally, the pairwise the factor overlap between splits with respect to each factor is printed to screen. In the above example, it so happens that the factor (speaker) is not overlapped in any of the splits. The constraint, which was on the fraction of data included in each split (we used the **sum_tuple** constraint on the field called fraction, which had the fraction of data contained within each unit), is printed. We requested 80% of the data in Split 0 and 20% in Split 1, which the algorithm nearly managed to accomplish.  
+Split 0 is by definition the selected set, and Split 1 is the "heldout" set with respect to Split 0. The remaining splits come from the discarded data and have different kinds of overlapping factors with respect to Spit 0. The values of the constraints for split are printed along with the number of data units in each split. Finally, the pairwise overlap between splits with respect to each factor is printed to screen. In the above example, it so happens that the factor (speaker) is not overlapped between any of the splits. The constraint, which was on the fraction of data included in each split (we used the **sum_tuple** constraint on the field called fraction, which had the fraction of data contained within each unit), is printed. We requested 80% of the data in Split 0 and 20% in Split 1, which the algorithm nearly managed to accomplish. We set the parameter **sum_tuple** in the yaml config file.
+
+```
+sum_tuple: [0.8, 0.2]
+```
