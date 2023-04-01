@@ -169,9 +169,9 @@ In general, the values specified for the metadata will decide what kind of simil
 
 If on the other hand the metadata were specified in terms of x-vectors for each speaker, i.e., vectors $s_1, s_2$, then the similarity used might be the thresholded **cosine** similarity. In this case, the similarity would be 
 
-$$s_1^Ts)2$$ 
+$$s_1^Ts_2$$ 
 
-assuming the x-vectors were normalized to have unit magnitude.
+assuming the x-vectors were normalized to have unit magnitude. The threshold is used to control the number of edges in the graph. If too small a value is used, the graph is either a complete graph or very close to a complete graph
 
 Similarly the values for the constraints can make the choice of constraint function obvious. If each utterance is associated with a label, such as a topic, one might want to create a split where the distribution over topics in the training and test sets is matched. This can be acheived by using the kl constraint on the topic field.
 
