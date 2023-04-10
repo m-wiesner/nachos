@@ -61,7 +61,13 @@ class MinNodeCut(AbstractSplitter):
         if d.graph is None:
             d.make_graph(self.sim_fn)
         if d.check_complete():
-            raise ValueError("Random Splitting cannot work on a complete graph")
+            raise ValueError("Minimum Node Cut Splitting cannot work on a "
+                "complete graph"
+            )
+        if d.check_disconnected():
+            raise ValueError("Minimum Node Cut Splitting cannot work on a "
+                "disconnected graph"
+            )
 
         # Initialize some values
         best_split = d.draw_random_node_cut()

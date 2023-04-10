@@ -34,7 +34,7 @@ class Sum(AbstractConstraint):
             :return: the constraint score (how close the constraints are met)
             :rtype: float
         '''
-        return abs(self.stat(c1) - self.s1_sum) + abs(self.stat(c2) - self.s2_sum)
+        return abs(self.stat(c1) - self.stat(c2))
 
     def stat(self, c1: Union[list, Generator]) -> float:
         '''

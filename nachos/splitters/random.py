@@ -80,7 +80,6 @@ class Random(AbstractSplitter):
        
         # Make the inverted indices
         d.make_constraint_inverted_index()
-        d.make_factor_inverted_index()
           
         # Initialize some values
         indices, best_split = d.draw_random_split()

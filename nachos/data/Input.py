@@ -27,7 +27,7 @@ class TSVLoader(object):
                     ) 
                     for i in range(len(factors))
                 ]
-                data.append(Data(record, factors, field_names=headers))
+                data.append(Data(record, factors, field_names=headers[:]))
         return Dataset(data, config['factor_idxs'], config['constraint_idxs']) 
 
 

@@ -9,7 +9,8 @@ WORST_SCORE = 99999.
 class Constraints(object):
     @classmethod
     def build(cls, conf: dict):
-        fns = [fn.build(conf) for fn in conf['constraints']]
+        constraints = conf['constraints']
+        fns = [c['name'].build(c) for c in constraints]
         weights = conf['constraint_weights']
         return cls(fns, weights)
 

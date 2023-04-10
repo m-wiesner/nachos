@@ -1,0 +1,31 @@
+format: tsv
+factor_types: [str, str, float, float]
+splitter: vns #min_node_cut #vns #random
+num_splits: 2
+factor_idxs: [1, 2]
+factor_weights: [1.0, 1.0]
+constraint_idxs: [3, 4]
+constraint_weights: [1.0, 1.0]
+similarity_functions:
+  - set_intersection
+  - set_intersection
+
+# The chosen constraints
+constraints: 
+  - {name: "sum_tuple", values: [2915, 2915], reduction: "sum"}
+  - {name: "sum_tuple", values: [0.95, 0.05], reduction: "sum"}
+
+#constraint_reduction: 'sum'
+#mean_tuple: [0.5, 0.5]
+#sum_tuple: [50, 50] 
+
+# Optimizer parameters
+seed: 0
+max_iter: 1000
+
+
+# VNS parameters
+num_shake_neighborhoods: 3
+num_search_neighborhoods: 3
+max_neighbors: 1000
+check_complete: False

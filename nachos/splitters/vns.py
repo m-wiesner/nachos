@@ -9,6 +9,7 @@ from nachos.splitters import register
 from typing import Optional, List, Tuple, Generator
 from tqdm import tqdm
 import random
+import networkx as nx
 
 
 @register("vns")
@@ -23,6 +24,7 @@ class VNS(AbstractSplitter):
             seed=conf['seed'],
             num_shake_neighborhoods=conf['num_shake_neighborhoods'],
             num_search_neighborhoods=conf['num_search_neighborhoods'],
+            check_complete=conf['check_complete'],
         )
 
     def __init__(self,
@@ -33,6 +35,7 @@ class VNS(AbstractSplitter):
         max_iter: int = 200,
         max_neighbors: int = 2000,
         seed: int = 0,
+        check_complete: bool = True,
     ):
         super().__init__(sim_fn, constraints)
         self.max_iter = max_iter
@@ -40,6 +43,7 @@ class VNS(AbstractSplitter):
         self.K = num_shake_neighborhoods
         self.L = num_search_neighborhoods
         self.max_neighbors = max_neighbors
+        self.check_complete = check_complete
     
     def __call__(self, d: Dataset) -> Tuple[FactoredSplit, List[float]]:
         '''
@@ -70,13 +74,11 @@ class VNS(AbstractSplitter):
         # This could take some time.
         if d.graph is None:
             d.make_graph(self.sim_fn)
-        if d.check_complete():
+        if self.check_complete and d.check_complete():
             raise ValueError("Random Splitting cannot work on a complete graph")
 
         # Make the inverted indices
         d.make_constraint_inverted_index()
-        d.make_factor_inverted_index()
-
 
         # Draw the first candidate randomly
         indices, split = d.draw_random_split()
@@ -133,6 +135,10 @@ class VNS(AbstractSplitter):
                 # the split to be this newly discovered descent direction. 
                 if best_score < score: 
                     split = best_split
+                    collapsed_split = collapse_factored_split(split)
+                    for s in collapsed_split:
+                        stats = self.constraint_fn.stats(d, s)
+                        print(f'Stats: {stats}')
                     indices = best_indices 
                     score = best_score
                     print(f"Iter {iter_num}: Best Score: {score:0.4f}")

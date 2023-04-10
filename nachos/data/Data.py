@@ -17,6 +17,7 @@ import json
 import random
 from itertools import groupby
 from copy import deepcopy
+from tqdm import tqdm
 
 
 InvertedIndex = Dict[int, Dict[Any, set]]
@@ -162,9 +163,14 @@ class Dataset(object):
                 [f for i, f in enumerate(d.factors, 1) if i in factor_idxs]
                 for d in self.data
         }
+        #self.constraints = {
+        #    d.id:
+        #        [f for i, f in enumerate(d.factors, 1) if i in constraint_idxs]
+        #        for d in self.data
+        #}
         self.constraints = {
             d.id:
-                [f for i, f in enumerate(d.factors, 1) if i in constraint_idxs]
+                [d.factors[i-1] for i in constraint_idxs]
                 for d in self.data
         }
         # Assume all points data are the same type. We could check this but it
@@ -211,6 +217,7 @@ class Dataset(object):
                 as self, from a subset of the data points.
         '''
         pass
+
 
     def check_complete(self) -> bool:
         '''
@@ -259,14 +266,18 @@ class Dataset(object):
         triu_idxs = np.triu_indices(len(self.data), k=1)
         self.graphs = {i: {} for i in range(len(self.factor_idxs))}
         G = nx.Graph()
-        for i, j in zip(triu_idxs[0], triu_idxs[1]):
+        G.add_nodes_from(range(len(self.data)))
+        for i, j in tqdm(zip(triu_idxs[0], triu_idxs[1]), desc="Making graph", total=len(triu_idxs[0])):
             # Cast to int to not confuse with np.int64
             i, j = int(i), int(j)
             # Loop over each factor to store inverted index of factor to graph
             # of data points with similar factors
             for n in range(len(self.factor_idxs)):
-                factor_i = self.data[i].factors[n]
-                factor_j = self.data[j].factors[n]
+                # factor_idxs is 1-indexed, so the factor to take is at
+                # position n-1 in self.data[i].factors for the n-th factor in
+                # factor_idxs
+                factor_i = self.data[i].factors[self.factor_idxs[n]-1]
+                factor_j = self.data[j].factors[self.factor_idxs[n]-1]
                 # Since factors can be multivalued we need to loop over each
                 # value for a specific factor type, i.e., each speaker present
                 # in a recording. We instantiate the graph if a particular value
@@ -296,6 +307,7 @@ class Dataset(object):
                     # Now compute the similarity with respect to that one point
                     # and add an edge to the value specific graph of the n-th
                     # factor if the similarity is > 0
+                    self.graphs[n][f].add_node(i)
                     sim = simfuns(self[j], u_i, n=n)
                     if sim > 0:
                         self.graphs[n][f].add_edge(i, j, capacity=sim)
@@ -309,6 +321,7 @@ class Dataset(object):
                     # Now compute the similarity with respect to that one point
                     # and add an edge to the value specific graph of the n-th
                     # factor if the similarity is > 0
+                    self.graphs[n][f].add_node(j)
                     sim = simfuns(self[i], u_j, n=n)
                     if sim > 0:
                         self.graphs[n][f].add_edge(i, j, capacity=sim)
@@ -812,6 +825,7 @@ class Dataset(object):
         data_w_overlapping_factors = {
                 i: [] for i in range(len(self.factor_idxs))
         }
+        
         for key in split[0]:
             for f_idx, factor in enumerate(self.factors[key]):
                 for f in factor:
@@ -931,4 +945,60 @@ def _1bit_different_numbers(v: str) -> Generator[str]:
             g = groupby(new_val, lambda x: x)
             if not (next(g, True) and not next(g, False)):
                 yield ''.join(new_val)
+
+def new_from_components(d: Dataset,
+    simfuns: SimilarityFunctions,
+) -> Tuple[Dataset, List[set]]:
+    '''
+        Summary:
+            Create a new dataset from the existing one by checking if > 1
+            connected components exist, and using the components as the
+            records to split rather than the original data points. In this
+            case there are no factors to consider (other than the
+            trivial factor which is just the component ID), and just
+            constraints.
+        :param d: The dataset from which to generate a new one using its
+            components
+        :type d: Dataset 
+        :param simfuns: The similarity functions used on each of the
+            originally specified factors to create the graph
+        :type simfuns: SimilarityFunctions
+        :return: A new dataset constructed from the connected components
+            of the original along with the map from the new points to the
+            corresponding set of old points.
+        :rtype: Tuple[Dataset, List[set]]
+    '''
+    if d.graph is None:
+        d.make_graph(simfuns)
+    components = list(nx.connected_components(d.graph))
+    if len(components) > 1:
+        # Restructure dataset to use clusters as the factor
+        # get id to component map
+        data = []
+        id_to_component = {}
+        for c_idx, c in enumerate(components):
+            new_fields = []
+            for i in range(len(d.data[0].factors)):
+                new_fields.append([f for j in c for f in d.data[j].factors[i]])
+            new_fields.append({c_idx})
+            for data_idx in c:
+                data_id = d.get_record(data_idx)
+                id_to_component[data_id] = c_idx
+            new_field_names = d.field_names[:]
+            new_field_names.append('component')
+            data.append(
+                Data(c_idx, new_fields, field_names=new_field_names)
+            )
+        factor_idxs = [len(data[0].factors)]
+        constraint_idxs = d.constraint_idxs[:]
+        dataset = Dataset(data, factor_idxs, constraint_idxs)
+        from nachos.similarity_functions.SimilarityFunctions import (
+            SimilarityFunctions,
+        )
+        from nachos.similarity_functions.boolean import Boolean
+        sim_fns = SimilarityFunctions([Boolean()], [1.0])
+        dataset.make_graph(sim_fns)
+        return dataset, id_to_component 
+    else:
+        return d, {d_i.id: d_i.id for d_i in d}
 

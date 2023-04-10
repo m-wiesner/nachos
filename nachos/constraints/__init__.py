@@ -30,6 +30,10 @@ def build_constraints(conf):
     new_conf = dict(conf)
     constraints = conf['constraints']
     new_conf['constraints'] = [
-        __CONSTRAINTS_DICT__[c] for c in constraints
+        {
+            'name': __CONSTRAINTS_DICT__[c['name']],
+            'values': c['values'] if 'values' in c else None,
+            'reduction': c['reduction'],
+        } for c in constraints
     ]
     return Constraints.build(new_conf) 

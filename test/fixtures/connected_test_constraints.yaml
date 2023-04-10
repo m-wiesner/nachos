@@ -29,3 +29,4 @@ max_iter: 15
 num_shake_neighborhoods: 2
 num_search_neighborhoods: 2
 max_neighbors: 1000
+check_complete: False

@@ -19,7 +19,7 @@ class AbstractConstraint(ABC):
     '''
     @classmethod
     def build(cls, conf: dict):
-        return cls(reduction=conf['constraint_reduction'])
+        return cls(reduction=conf['reduction'])
 
     def __init__(self, reduction: str = 'mean'):
         super().__init__()
