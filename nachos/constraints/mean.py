@@ -49,5 +49,10 @@ class Mean(AbstractConstraint):
             :param c1: the list of values over which to compute the mean
         '''
         c1 = list(c1)
+        # TODO. Make the normalizer an option similar to the reduce option.
+        # As coded now, it assumes each item in the constraints contributes 
+        # as if it were a full unit. It should be used with the sum reduce
+        # option.
+        denom = sum(len(c) for c in c1)
         # for multivalued problems, reduce values in c1
-        return float(sum(self.reduce(c) for c in c1)) / len(c1)
+        return float(sum(self.reduce(c) for c in c1)) / denom

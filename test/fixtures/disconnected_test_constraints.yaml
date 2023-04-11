@@ -12,12 +12,8 @@ similarity_functions:
 
 # The chosen constraints
 constraints: 
-  - {name: "sum_tuple", values: [2915, 2915], reduction: "sum"}
-  - {name: "sum_tuple", values: [0.95, 0.05], reduction: "sum"}
-
-#constraint_reduction: 'sum'
-#mean_tuple: [0.5, 0.5]
-#sum_tuple: [50, 50] 
+  - {name: "mean_tuple", values: [0.5, 0.5], reduction: "sum"}
+  - {name: "sum_tuple", values: [0.9, 0.1], reduction: "sum"}
 
 # Optimizer parameters
 seed: 0

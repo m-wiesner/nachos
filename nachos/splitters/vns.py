@@ -74,7 +74,7 @@ class VNS(AbstractSplitter):
         # This could take some time.
         if d.graph is None:
             d.make_graph(self.sim_fn)
-        if self.check_complete and d.check_complete():
+        if self.check_complete and d.is_complete():
             raise ValueError("Random Splitting cannot work on a complete graph")
 
         # Make the inverted indices
@@ -84,11 +84,12 @@ class VNS(AbstractSplitter):
         indices, split = d.draw_random_split()
         split_collapsed = collapse_factored_split(split)
         score = self.score(d, split_collapsed)
-        scores = [score]
+        scores = []
         print(f"Iter 0: Best Score: {score:0.4f}")
 
         # Repeat the VNS algorithm steps for up to max_iter iterations
         for iter_num in tqdm(range(self.max_iter)):
+            scores.append(score)
             # First draw a random point from the neighbor around the current
             # split. We will try to optimize starting from this random point
             # but if we cannot find a better point whose score is less than the
@@ -142,6 +143,5 @@ class VNS(AbstractSplitter):
                     indices = best_indices 
                     score = best_score
                     print(f"Iter {iter_num}: Best Score: {score:0.4f}")
-                    scores.append(score)
                     break
         return (collapse_factored_split(split), scores) 

@@ -29,7 +29,7 @@ def connected_eg():
 @pytest.fixture()
 def disconnected_eg():
     config = yaml.safe_load(open("test/fixtures/disconnected_test_constraints.yaml"))
-    return TSVLoader.load("test/fixtures/disconnected_fraction_eg.tsv", config)
+    return TSVLoader.load("test/fixtures/disconnected_fraction_subset_eg.tsv", config)
 
 
 @pytest.fixture()
@@ -101,7 +101,7 @@ def test_splitter_connected(connected_eg):
 
     split, scores = splitter(connected_eg)
     for i in range(1, len(scores)):
-        assert(scores[i] < scores[i-1])
+        assert(scores[i] <= scores[i-1])
     for idx_s, s in enumerate(split):
         constraint_stats = splitter.constraint_fn.stats(connected_eg, s)
         print(f'Split {idx_s}: {constraint_stats}')
@@ -130,7 +130,7 @@ def test_splitter_connected_lhotse(connected_eg_lhotse):
 
     split, scores = splitter(connected_eg_lhotse)
     for i in range(1, len(scores)):
-        assert(scores[i] < scores[i-1])
+        assert(scores[i] <= scores[i-1])
     for idx_s, s in enumerate(split):
         constraint_stats = splitter.constraint_fn.stats(connected_eg_lhotse, s)
         print(f'Split {idx_s}: {constraint_stats}')
@@ -163,7 +163,7 @@ def test_splitter_disconnected(disconnected_eg):
     component_eg.export_graph('test/fixtures/disconnected_graph.gml') 
     split, scores = splitter(component_eg)
     for i in range(1, len(scores)):
-        assert(scores[i] < scores[i-1])
+        assert(scores[i] <= scores[i-1])
     for idx_s, s in enumerate(split):
         constraint_stats = splitter.constraint_fn.stats(component_eg, s)
         print(f'Split {idx_s}: {constraint_stats}')

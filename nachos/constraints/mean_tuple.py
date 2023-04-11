@@ -13,7 +13,7 @@ class MeanTuple(Mean):
     '''
     @classmethod
     def build(cls, conf: dict):
-        return cls(*conf['mean_tuple'], reduction=conf['constraint_reduction'])
+        return cls(*conf['values'], reduction=conf['reduction'])
 
     def __init__(self, s1_mean: Any, s2_mean: Any, reduction: str = 'mean'):
         super().__init__(reduction=reduction)

@@ -78,7 +78,7 @@ constraints_list:
 
 # The chosen constraint
 constraints:
-  - sum_tuple
+  - {name: "sum_tuple", values: [0.8, 0.2], reduction: "sum"}
 
 sum_tuple: [0.8, 0.2]
 

@@ -219,7 +219,7 @@ class Dataset(object):
         pass
 
 
-    def check_complete(self) -> bool:
+    def is_complete(self) -> bool:
         '''
             Summary:
                 Checks if the graph is complete
@@ -231,7 +231,7 @@ class Dataset(object):
                 return False
         return True
 
-    def check_disconnected(self) -> bool:
+    def is_disconnected(self) -> bool:
         '''
             Summary:
                 Checks if the graph if there are M > 1 disconnected components
@@ -239,7 +239,12 @@ class Dataset(object):
             :return: True is disconnected, False otherwise
             :rtype: bool
         '''
-        num_components = nx.number_connected_componenets(self.graph)
+        if self.graph is None:
+            raise RuntimeError("Cannot check if graph is disconnected when it "
+                "has not yet been created. Create the graph by calling "
+                "self.make_graph(sim_fn)."
+            )
+        num_components = len(list(nx.connected_components(self.graph)))
         self.num_components = num_components
         if num_components > 1:
             return True
@@ -998,7 +1003,8 @@ def new_from_components(d: Dataset,
         from nachos.similarity_functions.boolean import Boolean
         sim_fns = SimilarityFunctions([Boolean()], [1.0])
         dataset.make_graph(sim_fns)
-        return dataset, id_to_component 
+        components_ = [set([d.get_record(i) for i in c]) for c in components]
+        return dataset, components_ #id_to_component 
     else:
-        return d, {d_i.id: d_i.id for d_i in d}
+        return d, [set(d.factors.keys())] #{d_i.id: d_i.id for d_i in d}
 
