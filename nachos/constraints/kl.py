@@ -5,7 +5,6 @@ from itertools import chain
 import numpy as np
 
 
-
 @register('kl')
 class KL(AbstractConstraint):
     r'''
@@ -47,7 +46,10 @@ class KL(AbstractConstraint):
     '''
     @classmethod
     def build(cls, conf: dict):
-        return cls(smooth=conf['kl_smooth'], direction=conf['kl_direction'])
+        return cls(
+            smooth=conf['values']['smooth'],
+            direction=conf['values']['direction'],
+        )
 
     def __init__(self, smooth: float = 0.000001, direction: str = 'forward'):
         super().__init__()
@@ -81,6 +83,8 @@ class KL(AbstractConstraint):
         # beginning that don't cover the vocabulary, we might underestimate the
         # true KL-divergence, and these values are not technically comparable
         # accross iterations.
+        c1 = list(c1)
+        c2 = list(c2)
         c1_counts = {v: self.smooth for v in self.vocab}
         c2_counts = {v: self.smooth for v in self.vocab}
         c1_total = self.smooth * len(self.vocab)
@@ -136,6 +140,8 @@ class KL(AbstractConstraint):
             [v for k, v in sorted(c2_counts.items(), key=lambda x: x[0])]
         ) / c2_total
 
+        #c1_dist = self.stat(c1)
+        #c2_dist = self.stat(c2)
         # Return the appropriate direction kl
         if self.direction == "forward":
             return np.dot(c1_dist, np.log(c1_dist) - np.log(c2_dist))
@@ -150,3 +156,28 @@ class KL(AbstractConstraint):
             f" used. Please choose from ['forward', 'reverse', 'symmetric'"
         )
 
+    def stat(self, c1: Union[list, Generator]) -> float:
+        c1_counts = {v: self.smooth for v in self.vocab}
+        c1_total = self.smooth * len(self.vocab)
+        for item in c1:
+            try:
+                for i in item:
+                    # if i wasn't seen in the vocab,
+                    # add it with count of self.smooth to both c1 and c2 counts
+                    if i not in self.vocab:
+                        self.vocab.add(i)
+                        c1_total += self.smooth
+                        c1_counts[i] = self.smooth
+                    c1_counts[i] += 1
+                    c1_total += 1
+            except TypeError:
+                if item not in self.vocab:
+                    self.vocab.add(item)
+                    c1_total += self.smooth
+                    c1_counts[item] = self.smooth
+                c1_counts[item] += 1
+                c1_total += 1
+        c1_dist = np.array(
+            [v for k, v in sorted(c1_counts.items(), key=lambda x: x[0])]
+        ) / c1_total
+        return c1_dist

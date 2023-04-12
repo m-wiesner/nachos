@@ -81,7 +81,10 @@ class Constraints(object):
         for n, fn in enumerate(self.fns):
             constraints = u.get_constraints(subset=s, n=n)
             constraint_name = u.field_names[u.constraint_idxs[n]]
-            constraint_stats[constraint_name] = round(fn.stat(constraints), 4)
+            #try:
+            #    constraint_stats[constraint_name] = round(fn.stat(constraints), 4)
+            #except TypeError:
+            constraint_stats[constraint_name] = fn.stat(constraints)
         # It's nice to have to the length of the sets in general
         constraint_stats['length'] = len(s)
         return constraint_stats 
