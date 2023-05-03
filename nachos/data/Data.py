@@ -247,6 +247,7 @@ class Dataset(object):
         num_components = len(list(nx.connected_components(self.graph)))
         self.num_components = num_components
         if num_components > 1:
+            print(f'Num Components: {num_components}')
             return True
         return False
 

@@ -1,4 +1,4 @@
-from typing import Union, Generator
+from typing import Union, Generator, Optional
 from nachos.constraints.abstract_constraint import AbstractConstraint
 from nachos.constraints import register
 from itertools import chain
@@ -46,16 +46,29 @@ class KL(AbstractConstraint):
     '''
     @classmethod
     def build(cls, conf: dict):
-        return cls(
-            smooth=conf['values']['smooth'],
-            direction=conf['values']['direction'],
-        )
+        if 'vocab' in conf['values']:
+            return cls(
+                smooth=conf['values']['smooth'],
+                direction=conf['values']['direction'],
+                vocab=conf['values']['vocab'],
+            )
+        else:
+            return cls(
+                smooth=conf['values']['smooth'],
+                direction=conf['values']['direction'],
+            )
 
-    def __init__(self, smooth: float = 0.000001, direction: str = 'forward'):
+    def __init__(self,
+        smooth: float = 0.000001,
+        direction: str = 'forward',
+        vocab: Optional[list] = None,
+    ):
         super().__init__()
         self.smooth = smooth
         self.direction = direction
         self.vocab = set()
+        if vocab is not None:
+            self.set_vocab(vocab)
 
     def __call__(self,
         c1: Union[list, Generator],
@@ -157,6 +170,17 @@ class KL(AbstractConstraint):
         )
 
     def stat(self, c1: Union[list, Generator]) -> float:
+        '''
+            Summary:
+                Esimates the empirical (categorical) distribution of the values
+                in c1. Unseen elements are automatically smoothed by giving
+                those categories a count of self.smooth.
+
+            Inputs
+            ------------------------
+            :param c1: the list of values over which to estimate the categorical
+                distribution.
+        '''
         c1_counts = {v: self.smooth for v in self.vocab}
         c1_total = self.smooth * len(self.vocab)
         for item in c1:
@@ -181,3 +205,9 @@ class KL(AbstractConstraint):
             [v for k, v in sorted(c1_counts.items(), key=lambda x: x[0])]
         ) / c1_total
         return c1_dist
+
+    def set_vocab(self, vocab):
+        if isinstance(vocab, set):
+            self.vocab = vocab
+        elif isinstance(vocab, list):
+            self.vocab = set(vocab)

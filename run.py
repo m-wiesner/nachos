@@ -6,19 +6,28 @@ from nachos.data.Data import new_from_components
 import yaml
 import argparse
 from pathlib import Path
+import json
 
 
 def main(args):
     odir = Path(args.odir)
     odir.mkdir(mode=511, parents=True, exist_ok=True)
     config = yaml.safe_load(open(args.config))
-    splitter = build_splitter(config)
     if config['format'] == 'tsv':
         data_eg = TSVLoader.load(args.metadata[0], config)
     elif config['format'] == 'lhotse':
         data_eg = LhotseLoader.load(args.metadata, config)
-  
+
+    data_eg.make_constraint_inverted_index()
+    # For KL divergence, it is probably better to set the vocabulary. It is not
+    # necessary, but it makes things easier if comparing across multiple splits.
+    for i, c in enumerate(config['constraints']):
+        if c['name'] == 'kl':
+            c['values']['vocab'] = sorted(data_eg.constraint_values[i])
+   
+    splitter = build_splitter(config)
     data_eg.make_graph(splitter.sim_fn) 
+    
     # If the graph is disconnected, reconstruct the dataset using the
     # components as the factors, keep the original constraints, and use the
     # components themselves as the records. Keep a map from the components
@@ -29,9 +38,17 @@ def main(args):
             data_eg, splitter.sim_fn
         )
     
+    # Save the configurations used for splitting
+    with open(odir / 'config.json', 'w') as f:
+        json.dump(config, f, indent=4)
+
     # Get the splits
     partition = {}
+    
+    # This is where most of the work happens
     split, scores = splitter(data_eg)
+   
+    # The rest is just printing out the partitions and associated statistics 
     test_sets = data_eg.make_overlapping_test_sets(split)
     for s_idx, s in enumerate(split):
         for s_item in s:
