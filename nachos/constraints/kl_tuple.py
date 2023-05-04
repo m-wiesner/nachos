@@ -59,6 +59,8 @@ class KLTuple(KL):
     def __call__(self,
         c1: Union[list, Generator],
         c2: Union[list, Generator],
+        weights1: Optional[Union[list, Generator]] = None,
+        weights2: Optional[Union[list, Generator]] = None,
     ) -> float:
         '''
             Summary:
@@ -78,9 +80,27 @@ class KLTuple(KL):
                     d1, d2
 
                 are the empirical densities generated from c1 and c2.
+            
+
+            Inputs
+            ---------------------------
+            :param c1: the values to constrain seen in dataset 1
+            :type c1: Union[list, Generator]
+            :param c2: the values to constrain seen in dataset 2
+            :type c2: Union[list, Generator]
+            :param weights1: the list of weights on each value of c1
+            :type weights1: Optional[Union[list, Generator]]
+            :param weights2: the list of weights on each value of c2
+            :type weights2: Optional[Union[list, Generator]]
+
+
+            Returns
+            ---------------------------
+            :return: how closely (0 is best) the sets c1, c2 satisfy the constraint
+            :rtype: float
         '''
-        c1_dist = self.stat(c1)
-        c2_dist = self.stat(c2)
+        c1_dist = self.stat(c1, weights1)
+        c2_dist = self.stat(c2, weights2)
 
         if self.direction == "forward":
             return (

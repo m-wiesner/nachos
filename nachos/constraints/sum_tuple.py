@@ -23,6 +23,8 @@ class SumTuple(Sum):
     def __call__(self,
         c1: Union[list, Generator],
         c2: Union[list, Generator],
+        weights1: Optional[Union[list, Generator]],
+        weights2: Optional[Union[list, Generator]],
     ) -> float:
         r'''
             Summary:
@@ -37,10 +39,14 @@ class SumTuple(Sum):
             :type c1: Union[list, Generator]
             :param c2: the list of values to constrain associated with dataset 2
             :type c2: Union[list, Generator]
+            :param weights1: the list of weights on each value of c1
+            :type weights1: Optional[Union[list, Generator]]
+            :param weights2: the list of weights on each value of c2
+            :type weights2: Optional[Union[list, Generator]]
 
             Returns
             -----------------------
             :return: the constraint score (how close the constraints are met)
             :rtype: float
         '''
-        return abs(self.stat(c1) - self.s1_sum) + abs(self.stat(c2) - self.s2_sum)
+        return abs(self.stat(c1, weights1) - self.s1_sum) + abs(self.stat(c2, weights2) - self.s2_sum)

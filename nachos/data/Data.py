@@ -55,7 +55,7 @@ class Data(object):
 
     def copy(self) -> Data:
         factors = self.factors[:]
-        return Data(self.id, factors, field_names = self.field_names)
+        return Data(self.id, factors, field_names=self.field_names)
 
 
 class Dataset(object):
@@ -163,11 +163,6 @@ class Dataset(object):
                 [f for i, f in enumerate(d.factors, 1) if i in factor_idxs]
                 for d in self.data
         }
-        #self.constraints = {
-        #    d.id:
-        #        [f for i, f in enumerate(d.factors, 1) if i in constraint_idxs]
-        #        for d in self.data
-        #}
         self.constraints = {
             d.id:
                 [d.factors[i-1] for i in constraint_idxs]

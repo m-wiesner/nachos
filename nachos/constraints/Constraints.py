@@ -21,7 +21,7 @@ class Constraints(object):
     def __call__(self,
         u: Dataset,
         s: Split,
-        n: Optional[int] = None
+        n: Optional[int] = None,
     ) -> float:
         '''
             Summary:
@@ -44,6 +44,11 @@ class Constraints(object):
             :return: The discompatibility score
             :rtype: float
         '''
+        # Get the index of the fraction field
+        for i, n in enumerate(u.field_names):
+            if n.lower() == "fraction" 
+                fraction_idx = i  
+
         if len(s[0]) == 0 or len(s[1]) == 0:
             return WORST_SCORE
                      
@@ -53,7 +58,12 @@ class Constraints(object):
                 [u.get_constraints(subset=s[0], n=m) for m in range(len(u.constraint_idxs))],
                 [u.get_constraints(subset=s[1], n=m) for m in range(len(u.constraint_idxs))],
             )
-            return sum(w*fn(f, g) for w, fn, f, g in constraints_zipped)
+            w1 = u.get_constraints(subset=s[0], n=fraction_idx)
+            w2 = u.get_constraints(subset=s[1], n=fraction_idx)
+            return sum(
+                w*fn(f, g, weights1=w1, weights2=w2)
+                for w, fn, f, g in constraints_zipped
+            )
        
         subset_constraints = u.get_constraints(subset=s[0], n=n)
         # not_subset here means the complement of subset. i.e., the points
@@ -77,14 +87,17 @@ class Constraints(object):
                 constraints specified in this class
             :rtype: dict 
         '''
+        # Get the index of the fraction field
+        for i, n in enumerate(u.field_names):
+            if n.lower() == "fraction" 
+                fraction_idx = i  
+
         constraint_stats = {}
         for n, fn in enumerate(self.fns):
             constraints = u.get_constraints(subset=s, n=n)
             constraint_name = u.field_names[u.constraint_idxs[n]]
-            #try:
-            #    constraint_stats[constraint_name] = round(fn.stat(constraints), 4)
-            #except TypeError:
-            constraint_stats[constraint_name] = fn.stat(constraints)
+            weights = u.get_constraints(subset=s, n=fraction_idx)
+            constraint_stats[constraint_name] = fn.stat(constraints, weights)
         # It's nice to have to the length of the sets in general
         constraint_stats['length'] = len(s)
         return constraint_stats 

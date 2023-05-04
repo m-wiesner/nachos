@@ -1,4 +1,4 @@
-from typing import Union, Generator
+from typing import Union, Generator, Optional
 from abc import ABC, abstractmethod
 
 
@@ -28,7 +28,9 @@ class AbstractConstraint(ABC):
     @abstractmethod
     def __call__(self,
         c1: Union[list, Generator],
-        c2: Union[list, Generator]
+        c2: Union[list, Generator],
+        weights1: Optional[Union[list, Generator]] = None,
+        weights2: Optional[Union[list, Generator]] = None,
     ) -> float:
         raise NotImplementedError
     

@@ -73,6 +73,8 @@ class KL(AbstractConstraint):
     def __call__(self,
         c1: Union[list, Generator],
         c2: Union[list, Generator],
+        weights1: Optional[Union[list, Generator]] = None,
+        weights2: Optional[Union[list, Generator]] = None,
     ) -> float:
         '''
             Summary:
@@ -85,6 +87,11 @@ class KL(AbstractConstraint):
             :type c1: Union[list, Generator]
             :param c2: the values to constrain seen in dataset 2
             :type c2: Union[list, Generator]
+            :param weights1: the list of weights on each value of c1
+            :type weights1: Optional[Union[list, Generator]]
+            :param weights2: the list of weights on each value of c2
+            :type weights2: Optional[Union[list, Generator]]
+
 
             Returns
             ---------------------------
@@ -102,7 +109,9 @@ class KL(AbstractConstraint):
         c2_counts = {v: self.smooth for v in self.vocab}
         c1_total = self.smooth * len(self.vocab)
         c2_total = self.smooth * len(self.vocab)
-        for item in c1:
+        iterator1 = zip(weights1, c1) if weights1 is not None else zip([1.0]*len(c1), c1)
+        iterator2 = zip(weights2, c2) if weights2 is not None else zip([1.0]*len(c2), c2)
+        for w, item in iterator1:
             try:
                 for i in item:
                     # if i wasn't seen in the vocab,
@@ -113,8 +122,8 @@ class KL(AbstractConstraint):
                         c2_total += self.smooth
                         c1_counts[i] = self.smooth
                         c2_counts[i] = self.smooth
-                    c1_counts[i] += 1
-                    c1_total += 1
+                    c1_counts[i] += w
+                    c1_total += w
             except TypeError:
                 if item not in self.vocab:
                     self.vocab.add(item)
@@ -122,9 +131,9 @@ class KL(AbstractConstraint):
                     c2_total += self.smooth
                     c1_counts[item] = self.smooth
                     c2_counts[item] = self.smooth
-                c1_counts[item] += 1
-                c1_total += 1
-        for item in c2:
+                c1_counts[item] += w
+                c1_total += w
+        for w, item in iterator2:
             try:
                 for i in item:
                     if i not in self.vocab:
@@ -133,8 +142,8 @@ class KL(AbstractConstraint):
                         c1_total += self.smooth
                         c2_counts[i] = self.smooth
                         c1_counts[i] = self.smooth
-                    c2_counts[i] += 1
-                    c2_total += 1
+                    c2_counts[i] += w
+                    c2_total += w
             except TypeError:
                 if item not in self.vocab:
                     self.vocab.add(item)
@@ -142,8 +151,8 @@ class KL(AbstractConstraint):
                     c1_total += self.smooth
                     c2_counts[item] = self.smooth
                     c1_counts[item] = self.smooth
-                c2_counts[item] += 1
-                c2_total += 1
+                c2_counts[item] += w
+                c2_total += w
 
         # Normalize each count by the total count to get a distribution
         c1_dist = np.array(
@@ -169,7 +178,10 @@ class KL(AbstractConstraint):
             f" used. Please choose from ['forward', 'reverse', 'symmetric'"
         )
 
-    def stat(self, c1: Union[list, Generator]) -> float:
+    def stat(self,
+        c1: Union[list, Generator],
+        weights1: Optional[Union[list, Generator]],
+    ) -> float:
         '''
             Summary:
                 Esimates the empirical (categorical) distribution of the values
@@ -180,10 +192,19 @@ class KL(AbstractConstraint):
             ------------------------
             :param c1: the list of values over which to estimate the categorical
                 distribution.
+            :type c1: Union[list, Generator]
+            :param weights1: the list of weights on each value of c1
+            :type weights1: Optional[Union[list, Generator]]
+
+            Returns
+            -------------------
+            :return: The statistic, (weighted) mean value, on c1
+            :rtype: float 
         '''
         c1_counts = {v: self.smooth for v in self.vocab}
         c1_total = self.smooth * len(self.vocab)
-        for item in c1:
+        iterator = zip(weights1, c1) if weights1 is not None else zip([1.0]*len(c1), c1)
+        for w, item in iterator:
             try:
                 for i in item:
                     # if i wasn't seen in the vocab,
@@ -192,15 +213,15 @@ class KL(AbstractConstraint):
                         self.vocab.add(i)
                         c1_total += self.smooth
                         c1_counts[i] = self.smooth
-                    c1_counts[i] += 1
-                    c1_total += 1
+                    c1_counts[i] += w
+                    c1_total += w
             except TypeError:
                 if item not in self.vocab:
                     self.vocab.add(item)
                     c1_total += self.smooth
                     c1_counts[item] = self.smooth
-                c1_counts[item] += 1
-                c1_total += 1
+                c1_counts[item] += w
+                c1_total += w
         c1_dist = np.array(
             [v for k, v in sorted(c1_counts.items(), key=lambda x: x[0])]
         ) / c1_total

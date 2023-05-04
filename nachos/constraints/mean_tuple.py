@@ -1,6 +1,6 @@
 from nachos.constraints.mean import Mean
 from nachos.constraints import register
-from typing import Any, Generator, Union
+from typing import Any, Generator, Union, Optional
 
 
 @register('mean_tuple')
@@ -23,6 +23,8 @@ class MeanTuple(Mean):
     def __call__(self,
         c1: Union[list, Generator],
         c2: Union[list, Generator],
+        weights1: Optional[Union[list, Generator]] = None,
+        weights2: Optional[Union[list, Generator]] = None,
     ) -> float:
         r'''
             Summary:
@@ -42,6 +44,11 @@ class MeanTuple(Mean):
             :type c1: Union[list, Generator]
             :param c2: the list of values to constrain associated with dataset 2
             :type c2: Union[list, Generator]
+            :param weights1: the list of weights on each value of c1
+            :type weights1: Optional[Union[list, Generator]]
+            :param weights2: the list of weights on each value of c2
+            :type weights2: Optional[Union[list, Generator]]
+
 
             Returns
             -----------------------
@@ -49,4 +56,4 @@ class MeanTuple(Mean):
             :rtype: float
         '''
         c1, c2 = list(c1), list(c2)
-        return abs(self.stat(c1) - self.s1_mean) + abs(self.stat(c2) - self.s2_mean)
+        return abs(self.stat(c1, weights1) - self.s1_mean) + abs(self.stat(c2, weights2) - self.s2_mean)
