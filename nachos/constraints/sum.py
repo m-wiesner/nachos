@@ -69,6 +69,6 @@ class Sum(AbstractConstraint):
         # for multivalued problems, reduce values in c1
         if weights1 is not None:
             weights1 = list(weights1)
-            return float(sum(w*self.reduce(c) for w, c in zip(weights1, c1)))
+            return float(sum(self.reduce(c, weights=w) for w, c in zip(weights1, c1)))
         else:
             return float(sum(self.reduce(c) for c in c1))

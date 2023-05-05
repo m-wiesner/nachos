@@ -50,20 +50,23 @@ class KL(AbstractConstraint):
             return cls(
                 smooth=conf['values']['smooth'],
                 direction=conf['values']['direction'],
+                reduction=conf['reduction'],
                 vocab=conf['values']['vocab'],
             )
         else:
             return cls(
                 smooth=conf['values']['smooth'],
                 direction=conf['values']['direction'],
+                reduction=conf['reduction'],
             )
 
     def __init__(self,
         smooth: float = 0.000001,
         direction: str = 'forward',
+        reduction: str = 'concat',
         vocab: Optional[list] = None,
     ):
-        super().__init__()
+        super().__init__(reduction=reduction)
         self.smooth = smooth
         self.direction = direction
         self.vocab = set()
@@ -114,47 +117,50 @@ class KL(AbstractConstraint):
         iterator1 = zip(weights1, c1) if weights1 is not None else zip([1.0]*len(c1), c1)
         iterator2 = zip(weights2, c2) if weights2 is not None else zip([1.0]*len(c2), c2)
         for w, item in iterator1:
-            try:
-                for i in item:
-                    # if i wasn't seen in the vocab,
-                    # add it with count of self.smooth to both c1 and c2 counts
-                    if i not in self.vocab:
-                        self.vocab.add(i)
-                        c1_total += self.smooth
-                        c2_total += self.smooth
-                        c1_counts[i] = self.smooth
-                        c2_counts[i] = self.smooth
-                    c1_counts[i] += w
-                    c1_total += w
-            except TypeError:
-                if item not in self.vocab:
-                    self.vocab.add(item)
+            item_ = self.reduce(item, weights=w)
+            #try:
+            for i, w_ in item_:
+                # if i wasn't seen in the vocab,
+                # add it with count of self.smooth to both c1 and c2 counts
+                if i not in self.vocab:
+                    self.vocab.add(i)
                     c1_total += self.smooth
                     c2_total += self.smooth
-                    c1_counts[item] = self.smooth
-                    c2_counts[item] = self.smooth
-                c1_counts[item] += w
-                c1_total += w
+                    c1_counts[i] = self.smooth
+                    c2_counts[i] = self.smooth
+                c1_counts[i] += w_
+                c1_total += w_
+            #except TypeError:
+            #    import pdb; pdb.set_trace()
+            #    if item not in self.vocab:
+            #        self.vocab.add(item)
+            #        c1_total += self.smooth
+            #        c2_total += self.smooth
+            #        c1_counts[item] = self.smooth
+            #        c2_counts[item] = self.smooth
+            #    c1_counts[item] += w
+            #    c1_total += w
         for w, item in iterator2:
-            try:
-                for i in item:
-                    if i not in self.vocab:
-                        self.vocab.add(i)
-                        c2_total += self.smooth
-                        c1_total += self.smooth
-                        c2_counts[i] = self.smooth
-                        c1_counts[i] = self.smooth
-                    c2_counts[i] += w
-                    c2_total += w
-            except TypeError:
-                if item not in self.vocab:
-                    self.vocab.add(item)
+            item_ = self.reduce(item, weights=w)
+            #try:
+            for i, w in item_:
+                if i not in self.vocab:
+                    self.vocab.add(i)
                     c2_total += self.smooth
                     c1_total += self.smooth
-                    c2_counts[item] = self.smooth
-                    c1_counts[item] = self.smooth
-                c2_counts[item] += w
-                c2_total += w
+                    c2_counts[i] = self.smooth
+                    c1_counts[i] = self.smooth
+                c2_counts[i] += w_
+                c2_total += w_
+            #except TypeError:
+            #    if item not in self.vocab:
+            #        self.vocab.add(item)
+            #        c2_total += self.smooth
+            #        c1_total += self.smooth
+            #        c2_counts[item] = self.smooth
+            #        c1_counts[item] = self.smooth
+            #    c2_counts[item] += w
+            #    c2_total += w
 
         # Normalize each count by the total count to get a distribution
         c1_dist = np.array(
@@ -209,23 +215,24 @@ class KL(AbstractConstraint):
         c1_total = self.smooth * len(self.vocab)
         iterator = zip(weights1, c1) if weights1 is not None else zip([1.0]*len(c1), c1)
         for w, item in iterator:
-            try:
-                for i in item:
-                    # if i wasn't seen in the vocab,
-                    # add it with count of self.smooth to both c1 and c2 counts
-                    if i not in self.vocab:
-                        self.vocab.add(i)
-                        c1_total += self.smooth
-                        c1_counts[i] = self.smooth
-                    c1_counts[i] += w
-                    c1_total += w
-            except TypeError:
-                if item not in self.vocab:
-                    self.vocab.add(item)
+            item_ = self.reduce(item, weights=w)
+            #try:
+            for i, w_ in item_:
+                # if i wasn't seen in the vocab,
+                # add it with count of self.smooth to both c1 and c2 counts
+                if i not in self.vocab:
+                    self.vocab.add(i)
                     c1_total += self.smooth
-                    c1_counts[item] = self.smooth
-                c1_counts[item] += w
-                c1_total += w
+                    c1_counts[i] = self.smooth
+                c1_counts[i] += w_
+                c1_total += w_
+            #except TypeError:
+            #    if item not in self.vocab:
+            #        self.vocab.add(item)
+            #        c1_total += self.smooth
+            #        c1_counts[item] = self.smooth
+            #    c1_counts[item] += w
+            #    c1_total += w
         c1_dist = np.array(
             [v for k, v in sorted(c1_counts.items(), key=lambda x: x[0])]
         ) / c1_total

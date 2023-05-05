@@ -33,12 +33,12 @@ class Data(object):
 
     '''
     def __init__(self,
-        id: str, factors: list, weight: float,
+        id: str, factors: list, weights: list[float],
         field_names: Optional[list] = None,
     ):
         self.id = id
         self.factors = factors
-        self.weight = weight
+        self.weights = weights
         # field 0 is the id
         self.field_names = field_names
 
@@ -48,7 +48,7 @@ class Data(object):
                 fieldname: list(factor)
                 for fieldname, factor in zip(self.field_names[1:], self.factors)
             },
-            'weight': self.weight,
+            'weights': self.weights,
         }
         return json.dumps(representation).replace(':', '=')
 
@@ -57,7 +57,8 @@ class Data(object):
 
     def copy(self) -> Data:
         factors = self.factors[:]
-        return Data(self.id, factors, self.weight, field_names=self.field_names)
+        weights = self.weights[:]
+        return Data(self.id, factors, weights, field_names=self.field_names)
 
 
 class Dataset(object):
@@ -150,7 +151,7 @@ class Dataset(object):
                 Data(
                     k,
                     factors[k],
-                    next(iter(factors[k][-1])),
+                    [next(iter(factors[k][-1]))],
                     field_names=field_names,
                 )
             )     
@@ -164,7 +165,7 @@ class Dataset(object):
     ):
         self.data = sorted(data, key=lambda x: x.id)
         self.id_to_idx = {x.id: i for i, x in enumerate(self.data)}
-        self.weights = {d.id: d.weight for d in self.data}
+        self.weights = {d.id: d.weights for d in self.data}
         self.factor_idxs = factor_idxs
         self.constraint_idxs = constraint_idxs
         # Factor, Constraint idxs are 1-indexed so we enumerate starting at 1
@@ -488,9 +489,15 @@ class Dataset(object):
         for fid, x in self.constraints.items():
             for n in range(len(self.constraint_idxs)):
                 for y in x[n]:
-                    if y not in inverted_index[n]:
-                        inverted_index[n][y] = set()
-                    inverted_index[n][y].add(fid)
+                    if isinstance(y, set):
+                        for v in y:
+                            if v not in inverted_index[n]:
+                                inverted_index[n][v] = set()
+                            inverted_index[n][v].add(fid)
+                    else:
+                        if y not in inverted_index[n]:
+                            inverted_index[n][y] = set()
+                        inverted_index[n][y].add(fid)
                 self.constraint_values[n] = sorted(inverted_index[n])
         self.constraint_inv_idx = inverted_index
 
@@ -977,6 +984,7 @@ def _1bit_different_numbers(v: str) -> Generator[str]:
             if not (next(g, True) and not next(g, False)):
                 yield ''.join(new_val)
 
+
 def new_from_components(d: Dataset,
     simfuns: SimilarityFunctions,
 ) -> Tuple[Dataset, List[set]]:
@@ -1010,17 +1018,18 @@ def new_from_components(d: Dataset,
         for c_idx, c in enumerate(components):
             new_fields = []
             for i in range(len(d.data[0].factors)):
-                new_fields.append([f for j in c for f in d.data[j].factors[i]])
+                #new_fields.append([f for j in c for f in d.data[j].factors[i]])
+                new_fields.append([d.data[j].factors[i] for j in c])
             new_fields.append({c_idx})
-            new_weight = 0.0
+            new_weights = []
             for data_idx in c:
-                new_weight += d.data[data_idx].weight
+                new_weights.extend(d.data[data_idx].weights)
                 data_id = d.get_record(data_idx)
                 id_to_component[data_id] = c_idx
             new_field_names = d.field_names[:]
             new_field_names.append('component')
             data.append(
-                Data(c_idx, new_fields, new_weight, field_names=new_field_names)
+                Data(c_idx, new_fields, new_weights, field_names=new_field_names)
             )
         factor_idxs = [len(data[0].factors)]
         constraint_idxs = d.constraint_idxs[:]

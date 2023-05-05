@@ -39,7 +39,7 @@ class TSVLoader(object):
                     Data(
                         record,
                         factors,
-                        next(iter(factors[fraction_idx])),
+                        [next(iter(factors[fraction_idx]))],
                         field_names=headers[:],
                     )
                 )
