@@ -60,7 +60,7 @@ def main(args):
     
     for s_idx, s in enumerate(test_sets, 2):
         if len(test_sets[s]) > 0:
-            for s_item in s:
+            for s_item in test_sets[s]:
                 if components is not None:
                     for i in components[s_item]:
                         partition[i] = s_idx
