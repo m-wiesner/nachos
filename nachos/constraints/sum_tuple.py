@@ -1,6 +1,6 @@
 from nachos.constraints.sum import Sum
 from nachos.constraints import register
-from typing import Union, Generator
+from typing import Union, Generator, Optional
 
 
 @register('sum_tuple')
@@ -49,4 +49,6 @@ class SumTuple(Sum):
             :return: the constraint score (how close the constraints are met)
             :rtype: float
         '''
+        c1, c2 = list(c1), list(c2)
+        weights1, weights2 = list(weights1), list(weights2)
         return abs(self.stat(c1, weights1) - self.s1_sum) + abs(self.stat(c2, weights2) - self.s2_sum)

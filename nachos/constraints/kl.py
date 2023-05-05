@@ -105,6 +105,8 @@ class KL(AbstractConstraint):
         # accross iterations.
         c1 = list(c1)
         c2 = list(c2)
+        weights1 = list(weights1) if weights1 is not None else weights1
+        weights2 = list(weights2) if weights2 is not None else weights2
         c1_counts = {v: self.smooth for v in self.vocab}
         c2_counts = {v: self.smooth for v in self.vocab}
         c1_total = self.smooth * len(self.vocab)
@@ -201,6 +203,8 @@ class KL(AbstractConstraint):
             :return: The statistic, (weighted) mean value, on c1
             :rtype: float 
         '''
+        c1 = list(c1)
+        weights1 = list(weights1) if weights1 is not None else weights1
         c1_counts = {v: self.smooth for v in self.vocab}
         c1_total = self.smooth * len(self.vocab)
         iterator = zip(weights1, c1) if weights1 is not None else zip([1.0]*len(c1), c1)
@@ -227,7 +231,16 @@ class KL(AbstractConstraint):
         ) / c1_total
         return c1_dist
 
-    def set_vocab(self, vocab):
+    def set_vocab(self, vocab: Union[set, list]):
+        '''
+            Summary:
+                Set the domain (vocab) used when computing KL-divergence
+
+            Inputs
+            -----------------
+            :param vocab: the domain
+            :type vocab: Union[set, list] 
+        '''
         if isinstance(vocab, set):
             self.vocab = vocab
         elif isinstance(vocab, list):

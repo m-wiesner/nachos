@@ -14,6 +14,14 @@ class TSVLoader(object):
         data = []
         with open(fname, 'r') as f:
             headers = f.readline().strip().split('\t')
+            # Find the fieldname named fraction. If it does not exist it will
+            # be set to 1.
+            fraction_idx = None
+            # We start with -1, because the first field is assumed to be the id
+            # and subsequent factors are then 0 indexed.
+            for i, h in enumerate(headers, -1):
+                if h.lower() == "fraction":
+                    fraction_idx = i 
             # Read each row
             for l in f:
                 # 1st column is record, next columns are factors
@@ -27,7 +35,14 @@ class TSVLoader(object):
                     ) 
                     for i in range(len(factors))
                 ]
-                data.append(Data(record, factors, field_names=headers[:]))
+                data.append(
+                    Data(
+                        record,
+                        factors,
+                        next(iter(factors[fraction_idx])),
+                        field_names=headers[:],
+                    )
+                )
         return Dataset(data, config['factor_idxs'], config['constraint_idxs']) 
 
 

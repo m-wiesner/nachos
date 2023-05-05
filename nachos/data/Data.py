@@ -33,11 +33,12 @@ class Data(object):
 
     '''
     def __init__(self,
-        id: str, factors: list,
+        id: str, factors: list, weight: float,
         field_names: Optional[list] = None,
     ):
         self.id = id
         self.factors = factors
+        self.weight = weight
         # field 0 is the id
         self.field_names = field_names
 
@@ -46,7 +47,8 @@ class Data(object):
             self.id: {
                 fieldname: list(factor)
                 for fieldname, factor in zip(self.field_names[1:], self.factors)
-            }
+            },
+            'weight': self.weight,
         }
         return json.dumps(representation).replace(':', '=')
 
@@ -55,7 +57,7 @@ class Data(object):
 
     def copy(self) -> Data:
         factors = self.factors[:]
-        return Data(self.id, factors, field_names=self.field_names)
+        return Data(self.id, factors, self.weight, field_names=self.field_names)
 
 
 class Dataset(object):
@@ -144,7 +146,14 @@ class Dataset(object):
         total_duration = sum(sum(f[-1]) for f in factors.values())
         for k in factors:
             factors[k].append(set([sum(factors[k][-1]) / total_duration]))
-            data.append(Data(k, factors[k], field_names=field_names))     
+            data.append(
+                Data(
+                    k,
+                    factors[k],
+                    next(iter(factors[k][-1])),
+                    field_names=field_names,
+                )
+            )     
         return cls(data, factor_idxs, constraint_idxs)
 
     
@@ -155,6 +164,7 @@ class Dataset(object):
     ):
         self.data = sorted(data, key=lambda x: x.id)
         self.id_to_idx = {x.id: i for i, x in enumerate(self.data)}
+        self.weights = {d.id: d.weight for d in self.data}
         self.factor_idxs = factor_idxs
         self.constraint_idxs = constraint_idxs
         # Factor, Constraint idxs are 1-indexed so we enumerate starting at 1
@@ -418,6 +428,26 @@ class Dataset(object):
         keys = set.intersection(set(self.constraints.keys()), set(subset))
         for x in keys:
             yield self.constraints[x] if n is None else self.constraints[x][n]
+
+    def get_weights(self, subset: Iterable = None):
+        '''
+            Summary:
+                Returns a generator over the weight of each data element in the
+                dataset.
+
+            Inputs
+            ---------------------
+            :param subset: Iterable of subset of ids to use
+            :type subset: Iterable
+
+            Returns
+            ----------------------
+            :return: generator over weights in a subset
+            :rtype: Generator
+        '''
+        keys = set.intersection(set(self.weights.keys()), set(subset))
+        for x in keys:
+            yield self.weights[x]
 
     def get_factors(self,
         subset: Optional[Iterable] = None,
@@ -982,13 +1012,15 @@ def new_from_components(d: Dataset,
             for i in range(len(d.data[0].factors)):
                 new_fields.append([f for j in c for f in d.data[j].factors[i]])
             new_fields.append({c_idx})
+            new_weight = 0.0
             for data_idx in c:
+                new_weight += d.data[data_idx].weight
                 data_id = d.get_record(data_idx)
                 id_to_component[data_id] = c_idx
             new_field_names = d.field_names[:]
             new_field_names.append('component')
             data.append(
-                Data(c_idx, new_fields, field_names=new_field_names)
+                Data(c_idx, new_fields, new_weight, field_names=new_field_names)
             )
         factor_idxs = [len(data[0].factors)]
         constraint_idxs = d.constraint_idxs[:]

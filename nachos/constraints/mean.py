@@ -73,9 +73,10 @@ class Mean(AbstractConstraint):
         # as if it were a full unit. It should be used with the sum reduce
         # option.
         if weights1 is not None:
-            denom = sum(w*len(c) for w, c in zip(weights1, c1)) 
+            weights1 = list(weights1)
+            #denom = sum(w*len(c) for w, c in zip(weights1, c1)) 
             # for multivalued problems, reduce values in c1
-            return float(sum(w*self.reduce(c) for w, c in zip(weights1, c1))) / denom
+            return float(sum(w*self.reduce(c) for w, c in zip(weights1, c1)))# / denom
         else:
-            denom = sum(len(c) for c in c1)
-            return float(sum(self.reduce(c) for c in c1)) / denom
+            #denom = sum(len(c) for c in c1)
+            return float(sum(self.reduce(c) for c in c1))# / denom

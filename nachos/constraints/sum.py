@@ -1,6 +1,6 @@
 from nachos.constraints.abstract_constraint import AbstractConstraint
 from nachos.constraints import register
-from typing import Union, Generator
+from typing import Union, Generator, Optional
 
 
 @register('sum')
@@ -41,6 +41,8 @@ class Sum(AbstractConstraint):
             :return: the constraint score (how close the constraints are met)
             :rtype: float
         '''
+        c1, c2 = list(c1), list(c2)
+        weights1, weights2 = list(weights1), list(weights2)
         return abs(self.stat(c1, weights1) - self.stat(c2, weights2))
 
     def stat(self,
@@ -66,6 +68,7 @@ class Sum(AbstractConstraint):
         c1 = list(c1)
         # for multivalued problems, reduce values in c1
         if weights1 is not None:
-            return float(sum(w*self.reduce(c) for c in zip(weights1, c1)))
+            weights1 = list(weights1)
+            return float(sum(w*self.reduce(c) for w, c in zip(weights1, c1)))
         else:
             return float(sum(self.reduce(c) for c in c1))
