@@ -17,6 +17,7 @@ class AbstractSplitter(ABC):
 
     @abstractmethod
     def __call__(self, d: Dataset) -> List[Dataset]:
+        raise NotImplementedError
         pass
 
     def score(self, u: Dataset, s: Split) -> float:

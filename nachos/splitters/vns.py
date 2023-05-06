@@ -86,10 +86,11 @@ class VNS(AbstractSplitter):
         score = self.score(d, split_collapsed)
         scores = []
         print(f"Iter 0: Best Score: {score:0.4f}")
-
+        iter_indices = []
         # Repeat the VNS algorithm steps for up to max_iter iterations
         for iter_num in tqdm(range(self.max_iter)):
             scores.append(score)
+            iter_indices.append(indices)
             # First draw a random point from the neighbor around the current
             # split. We will try to optimize starting from this random point
             # but if we cannot find a better point whose score is less than the
@@ -144,4 +145,4 @@ class VNS(AbstractSplitter):
                     score = best_score
                     print(f"Iter {iter_num}: Best Score: {score:0.4f}")
                     break
-        return (collapse_factored_split(split), scores) 
+        return (collapse_factored_split(split), scores, iter_indices) 

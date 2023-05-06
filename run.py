@@ -7,6 +7,7 @@ import yaml
 import argparse
 from pathlib import Path
 import json
+from matplotlib import pyplot as plt
 
 
 def main(args):
@@ -46,8 +47,29 @@ def main(args):
     partition = {}
     
     # This is where most of the work happens
-    split, scores = splitter(data_eg)
-   
+    split, scores, indices = splitter(data_eg)
+    
+    # Plot the powerset indices
+    for f in range(len(indices[0])):
+        indices_over_time_bin = [
+            [int(format(indices[i][f], 'b')[j]) for i in range(len(indices))]
+            for j in range(len(format(indices[0][f], 'b')))
+        ]
+        indices_over_time = [indices[i][f] for i in range(len(indices))]
+        for i, e in enumerate(indices_over_time_bin):
+            plt.step(range(len(e)), [j + i*2 for j in e]) 
+        plt.savefig(f'{str(odir)}/powerset_{f}_bin.png')
+        plt.clf()
+
+        plt.step(range(len(indices_over_time)), indices_over_time)
+        plt.yscale('log')
+        plt.savefig(f'{str(odir)}/powerset_{f}.png')
+        plt.clf()
+
+    plt.plot(scores)
+    plt.yscale('log')
+    plt.savefig(f'{str(odir)}/scores.png')
+    
     # The rest is just printing out the partitions and associated statistics 
     test_sets = data_eg.make_overlapping_test_sets(split)
     for s_idx, s in enumerate(split):
