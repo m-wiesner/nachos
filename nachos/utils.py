@@ -4,4 +4,3 @@ def check_iterable(f):
         return True
     except TypeError:
         return False
-

@@ -19,6 +19,9 @@ def main(args):
     elif config['format'] == 'lhotse':
         data_eg = LhotseLoader.load(args.metadata, config)
 
+    if args.seed is not None:
+        config['seed'] = args.seed
+    
     data_eg.make_constraint_inverted_index()
     # For KL divergence, it is probably better to set the vocabulary. It is not
     # necessary, but it makes things easier if comparing across multiple splits.
@@ -34,10 +37,10 @@ def main(args):
     # components themselves as the records. Keep a map from the components
     # back to the original records
     components = None
-    if data_eg.is_disconnected():
-        data_eg, components = new_from_components(
-            data_eg, splitter.sim_fn
-        )
+    #if data_eg.is_disconnected():
+    #    data_eg, components = new_from_components(
+    #        data_eg, splitter.sim_fn
+    #    )
     
     # Save the configurations used for splitting
     with open(odir / 'config.json', 'w') as f:
@@ -47,29 +50,40 @@ def main(args):
     partition = {}
     
     # This is where most of the work happens
-    split, scores, indices = splitter(data_eg)
-    
-    # Plot the powerset indices
-    for f in range(len(indices[0])):
-        indices_over_time_bin = [
-            [int(format(indices[i][f], 'b')[j]) for i in range(len(indices))]
-            for j in range(len(format(indices[0][f], 'b')))
-        ]
-        indices_over_time = [indices[i][f] for i in range(len(indices))]
-        for i, e in enumerate(indices_over_time_bin):
-            plt.step(range(len(e)), [j + i*2 for j in e]) 
-        plt.savefig(f'{str(odir)}/powerset_{f}_bin.png')
-        plt.clf()
+    out = splitter(data_eg)
+    if config['splitter'] == 'vns':
+        split, scores, indices = out
+        
+        with open(odir / 'indices.json', 'w') as f:
+            json.dump(indices, f, indent=4)
 
-        plt.step(range(len(indices_over_time)), indices_over_time)
+        # Plot the powerset indices
+        for f in range(len(indices[0])):
+            indices_over_time_bin = [
+                [int(format(indices[i][f], 'b')[j]) for i in range(len(indices))]
+                for j in range(len(format(indices[0][f], 'b')))
+            ]
+            indices_over_time = [indices[i][f] for i in range(len(indices))]
+            for i, e in enumerate(indices_over_time_bin):
+                plt.step(range(len(e)), [j + i*2 for j in e]) 
+            plt.savefig(f'{str(odir)}/powerset_{f}_bin.png')
+            plt.clf()
+
+            plt.step(range(len(indices_over_time)), indices_over_time)
+            plt.yscale('log')
+            plt.savefig(f'{str(odir)}/powerset_{f}.png')
+            plt.clf()
+
+        plt.plot(scores)
         plt.yscale('log')
-        plt.savefig(f'{str(odir)}/powerset_{f}.png')
-        plt.clf()
+        plt.savefig(f'{str(odir)}/scores.png')
+    else:
+        split, scores, = out
 
-    plt.plot(scores)
-    plt.yscale('log')
-    plt.savefig(f'{str(odir)}/scores.png')
-    
+    # Print final score out to file 
+    with open(odir / 'score', 'w') as f:
+        print(scores[-1], file=f)
+          
     # The rest is just printing out the partitions and associated statistics 
     test_sets = data_eg.make_overlapping_test_sets(split)
     for s_idx, s in enumerate(split):
@@ -130,6 +144,7 @@ if __name__ == "__main__":
         help='path(s) to the metadata file(s), .tsv or lhotse manifests, that '
         'define(s) the data elements to be split.'
     )
+    parser.add_argument('--seed', type=int, help='The random seed.') 
     
     args = parser.parse_args() 
     main(args)

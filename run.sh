@@ -2,5 +2,7 @@
 
 seed=$1
 odir=$2
+config=$3
+tsv=$4
 mkdir -p $odir
-python run.py --seed ${seed} ${odir} egs/korean2/korean.yaml egs/korean2/korean_actual2.tsv 
+PYTHONUNBUFFERED=1 python run.py --seed ${seed} ${odir} ${config} ${tsv}
