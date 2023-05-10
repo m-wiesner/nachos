@@ -37,10 +37,11 @@ def main(args):
     # components themselves as the records. Keep a map from the components
     # back to the original records
     components = None
-    #if data_eg.is_disconnected():
-    #    data_eg, components = new_from_components(
-    #        data_eg, splitter.sim_fn
-    #    )
+    if args.use_components:
+        if data_eg.is_disconnected():
+            data_eg, components = new_from_components(
+                data_eg, splitter.sim_fn
+            )
     
     # Save the configurations used for splitting
     with open(odir / 'config.json', 'w') as f:
@@ -66,23 +67,26 @@ def main(args):
             indices_over_time = [indices[i][f] for i in range(len(indices))]
             for i, e in enumerate(indices_over_time_bin):
                 plt.step(range(len(e)), [j + i*2 for j in e]) 
+            plt.xscale('log')
             plt.savefig(f'{str(odir)}/powerset_{f}_bin.png')
             plt.clf()
 
             plt.step(range(len(indices_over_time)), indices_over_time)
             plt.yscale('log')
+            plt.xscale('log')
             plt.savefig(f'{str(odir)}/powerset_{f}.png')
             plt.clf()
 
         plt.plot(scores)
         plt.yscale('log')
+        plt.xscale('log')
         plt.savefig(f'{str(odir)}/scores.png')
     else:
         split, scores, = out
 
     # Print final score out to file 
-    with open(odir / 'score', 'w') as f:
-        print(scores[-1], file=f)
+    with open(odir / 'scores.json', 'w') as f:
+        json.dump(scores, f, indent=4)
           
     # The rest is just printing out the partitions and associated statistics 
     test_sets = data_eg.make_overlapping_test_sets(split)
@@ -145,6 +149,7 @@ if __name__ == "__main__":
         'define(s) the data elements to be split.'
     )
     parser.add_argument('--seed', type=int, help='The random seed.') 
+    parser.add_argument('--use-components', action='store_true')
     
     args = parser.parse_args() 
     main(args)
