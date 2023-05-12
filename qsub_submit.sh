@@ -1,6 +1,8 @@
 #!/bin/bash
 
 use_components=false
+partition=
+split=
 
 . ./scripts/parse_options.sh
 
@@ -19,6 +21,10 @@ mkdir -p ${odir}
 
 for s in `seq 0 ${nj}`; do
   mkdir -p ${odir}/seed${s}
-  qsub -l h_rt=20:00:00 -V -o ${odir}/seed${s}/split.log -e ${odir}/seed${s}/split.err -N split.${s} -cwd ./run.sh --use-components ${use_components} ${s} ${odir}/seed${s} ${config} ${tsv}
+  if [[ ! -z $partition && ! -z $split ]]; then
+    qsub -l h_rt=20:00:00 -V -o ${odir}/seed${s}/split.log -e ${odir}/seed${s}/split.err -N split.${s} -cwd ./run.sh --partition-and-split "${partition}:${split}" --use-components ${use_components} ${s} ${odir}/seed${s} ${config} ${tsv}
+  else
+    qsub -l h_rt=20:00:00 -V -o ${odir}/seed${s}/split.log -e ${odir}/seed${s}/split.err -N split.${s} -cwd ./run.sh --use-components ${use_components} ${s} ${odir}/seed${s} ${config} ${tsv}
+  fi
 done
 

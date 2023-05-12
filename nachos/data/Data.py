@@ -427,7 +427,7 @@ class Dataset(object):
         if subset is None:
             subset = self.constraints.keys()
         keys = set.intersection(set(self.constraints.keys()), set(subset))
-        for x in keys:
+        for x in sorted(keys):
             yield self.constraints[x] if n is None else self.constraints[x][n]
 
     def get_weights(self, subset: Iterable = None):
@@ -447,7 +447,7 @@ class Dataset(object):
             :rtype: Generator
         '''
         keys = set.intersection(set(self.weights.keys()), set(subset))
-        for x in keys:
+        for x in sorted(keys):
             yield self.weights[x]
 
     def get_factors(self,
@@ -475,7 +475,7 @@ class Dataset(object):
         if subset is None:
             subset = self.constraints.keys()
         keys = set.intersection(set(self.constraints.keys()), set(subset))
-        for x in keys:
+        for x in sorted(keys):
             yield self.factors[x] if n is None else self.factors[x][n]
 
     def make_constraint_inverted_index(self) -> None:
@@ -1018,7 +1018,6 @@ def new_from_components(d: Dataset,
         for c_idx, c in enumerate(components):
             new_fields = []
             for i in range(len(d.data[0].factors)):
-                #new_fields.append([f for j in c for f in d.data[j].factors[i]])
                 new_fields.append([d.data[j].factors[i] for j in c])
             new_fields.append({c_idx})
             new_weights = []
@@ -1041,7 +1040,7 @@ def new_from_components(d: Dataset,
         sim_fns = SimilarityFunctions([Boolean()], [1.0])
         dataset.make_graph(sim_fns)
         components_ = [set([d.get_record(i) for i in c]) for c in components]
-        return dataset, components_ #id_to_component 
+        return dataset, components_ 
     else:
-        return d, [set(d.factors.keys())] #{d_i.id: d_i.id for d_i in d}
+        return d, [set(d.factors.keys())]
 

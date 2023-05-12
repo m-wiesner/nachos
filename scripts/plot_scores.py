@@ -3,6 +3,7 @@ from matplotlib import pyplot as plt
 import argparse
 from pathlib import Path
 import json
+from nachos.constraints.Constraints import WORST_SCORE
 
 
 def plot_scores(d: str, figpath: str):
@@ -10,6 +11,8 @@ def plot_scores(d: str, figpath: str):
     for fname in files:
         with open(fname) as f:
             scores = json.load(f) 
+        max_score = max(s for s in scores if s != WORST_SCORE)
+        scores = [s if s < WORST_SCORE else max_score for s in scores] 
         plt.plot(scores, alpha=0.2, linewidth=0.3, color='r')
     plt.xscale('log')
     plt.yscale('log')

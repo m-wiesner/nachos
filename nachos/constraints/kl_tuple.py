@@ -2,6 +2,7 @@ from typing import Union, Generator, Optional
 from nachos.constraints.kl import KL
 from nachos.constraints import register
 from typing import Any
+import numpy as np
 
 
 @register('kl_tuple')
@@ -38,7 +39,8 @@ class KLTuple(KL):
     '''
     @classmethod
     def build(cls, conf:dict):
-            return cls(*conf['values']['dist'],
+        return cls(
+            *conf['values']['dist'],
             smooth=conf['values']['smooth'],
             direction=conf['values']['direction'],
             vocab=conf['values']['vocab'],

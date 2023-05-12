@@ -11,6 +11,16 @@ from matplotlib import pyplot as plt
 
 
 def main(args):
+    if args.partition_and_split is not None:
+        included_records = set()
+        partition_file, split = args.partition_and_split.split(':')
+        split = int(split)
+        with open(partition_file, 'r') as f:
+            for l in f:
+                record_name, split_num = l.strip().split()
+                if int(split_num) == split:
+                    included_records.add(record_name)
+    
     odir = Path(args.odir)
     odir.mkdir(mode=511, parents=True, exist_ok=True)
     config = yaml.safe_load(open(args.config))
@@ -19,16 +29,38 @@ def main(args):
     elif config['format'] == 'lhotse':
         data_eg = LhotseLoader.load(args.metadata, config)
 
-    if args.seed is not None:
-        config['seed'] = args.seed
-    
     data_eg.make_constraint_inverted_index()
     # For KL divergence, it is probably better to set the vocabulary. It is not
     # necessary, but it makes things easier if comparing across multiple splits.
     for i, c in enumerate(config['constraints']):
-        if c['name'] == 'kl':
+        if c['name'] in ('kl', 'kl_tuple') and 'vocab' not in c['values']:
             c['values']['vocab'] = sorted(data_eg.constraint_values[i])
-   
+    
+    # This line is where we subset the dataset to include only those records in
+    # the requested split of the partition file (from a previous split). This
+    # is used when you want to recursively split dataset.
+    if args.partition_and_split is not None:
+        assert len(included_records) >= 2, "Length of the requested partition is too small (<2)"
+        new_data = []
+        # We will have to renormalize the weights if we are only using a subset
+        # of the data. First we get the total weight of the selected items and
+        # then we will renormalize each record's weight by the new normalizer.
+        total_weight = sum(
+            sum(data_eg.data[data_eg.id_to_idx[r]].weights) for r in included_records
+        )
+        for r in included_records:
+            idx = data_eg.id_to_idx[r]
+            new_data_item = data_eg.data[idx].copy()
+            new_data_item.weights = [
+                w/total_weight for w in new_data_item.weights
+            ]
+            new_data.append(new_data_item)
+        data_eg = data_eg.subset_from_data(new_data)
+    if args.seed is not None:
+        config['seed'] = args.seed
+         
+    config['partition_and_split'] = (partition_file, split) if args.partition_and_split is not None else None
+    data_eg.make_constraint_inverted_index()
     splitter = build_splitter(config)
     data_eg.make_graph(splitter.sim_fn) 
     
@@ -37,11 +69,13 @@ def main(args):
     # components themselves as the records. Keep a map from the components
     # back to the original records
     components = None
+    config['use_components'] = False
     if args.use_components:
         if data_eg.is_disconnected():
             data_eg, components = new_from_components(
                 data_eg, splitter.sim_fn
             )
+            config['use_components'] = True
     
     # Save the configurations used for splitting
     with open(odir / 'config.json', 'w') as f:
@@ -61,9 +95,10 @@ def main(args):
         # Plot the powerset indices
         for f in range(len(indices[0])):
             indices_over_time_bin = [
-                [int(format(indices[i][f], 'b')[j]) for i in range(len(indices))]
-                for j in range(len(format(indices[0][f], 'b')))
+                [int(format(indices[i][f], f'0{len(data_eg.graphs[f])}b')[j]) for i in range(len(indices))]
+                for j in range(len(data_eg.graphs[f]))
             ]
+
             indices_over_time = [indices[i][f] for i in range(len(indices))]
             for i, e in enumerate(indices_over_time_bin):
                 plt.step(range(len(e)), [j + i*2 for j in e]) 
@@ -150,6 +185,11 @@ if __name__ == "__main__":
     )
     parser.add_argument('--seed', type=int, help='The random seed.') 
     parser.add_argument('--use-components', action='store_true')
+    parser.add_argument('--partition-and-split', type=str, help='specify this '
+        'when splitting on a subset specified by the output of a previous '
+        "split. The format is 'filename:0' to split on the split labeled 0 in"
+        " filename, which stores a previous splits output.", default=None,
+    )
     
     args = parser.parse_args() 
     main(args)

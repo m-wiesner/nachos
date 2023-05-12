@@ -118,7 +118,6 @@ class KL(AbstractConstraint):
         iterator2 = zip(weights2, c2) if weights2 is not None else zip([1.0]*len(c2), c2)
         for w, item in iterator1:
             item_ = self.reduce(item, weights=w)
-            #try:
             for i, w_ in item_:
                 # if i wasn't seen in the vocab,
                 # add it with count of self.smooth to both c1 and c2 counts
@@ -130,19 +129,8 @@ class KL(AbstractConstraint):
                     c2_counts[i] = self.smooth
                 c1_counts[i] += w_
                 c1_total += w_
-            #except TypeError:
-            #    import pdb; pdb.set_trace()
-            #    if item not in self.vocab:
-            #        self.vocab.add(item)
-            #        c1_total += self.smooth
-            #        c2_total += self.smooth
-            #        c1_counts[item] = self.smooth
-            #        c2_counts[item] = self.smooth
-            #    c1_counts[item] += w
-            #    c1_total += w
         for w, item in iterator2:
             item_ = self.reduce(item, weights=w)
-            #try:
             for i, w in item_:
                 if i not in self.vocab:
                     self.vocab.add(i)
@@ -152,15 +140,6 @@ class KL(AbstractConstraint):
                     c1_counts[i] = self.smooth
                 c2_counts[i] += w_
                 c2_total += w_
-            #except TypeError:
-            #    if item not in self.vocab:
-            #        self.vocab.add(item)
-            #        c2_total += self.smooth
-            #        c1_total += self.smooth
-            #        c2_counts[item] = self.smooth
-            #        c1_counts[item] = self.smooth
-            #    c2_counts[item] += w
-            #    c2_total += w
 
         # Normalize each count by the total count to get a distribution
         c1_dist = np.array(
@@ -170,8 +149,6 @@ class KL(AbstractConstraint):
             [v for k, v in sorted(c2_counts.items(), key=lambda x: x[0])]
         ) / c2_total
 
-        #c1_dist = self.stat(c1)
-        #c2_dist = self.stat(c2)
         # Return the appropriate direction kl
         if self.direction == "forward":
             return np.dot(c1_dist, np.log(c1_dist) - np.log(c2_dist))
@@ -209,14 +186,13 @@ class KL(AbstractConstraint):
             :return: The statistic, (weighted) mean value, on c1
             :rtype: float 
         '''
-        c1 = list(c1)
+        c1 = sorted(c1)
         weights1 = list(weights1) if weights1 is not None else weights1
         c1_counts = {v: self.smooth for v in self.vocab}
         c1_total = self.smooth * len(self.vocab)
         iterator = zip(weights1, c1) if weights1 is not None else zip([1.0]*len(c1), c1)
         for w, item in iterator:
             item_ = self.reduce(item, weights=w)
-            #try:
             for i, w_ in item_:
                 # if i wasn't seen in the vocab,
                 # add it with count of self.smooth to both c1 and c2 counts
@@ -226,13 +202,6 @@ class KL(AbstractConstraint):
                     c1_counts[i] = self.smooth
                 c1_counts[i] += w_
                 c1_total += w_
-            #except TypeError:
-            #    if item not in self.vocab:
-            #        self.vocab.add(item)
-            #        c1_total += self.smooth
-            #        c1_counts[item] = self.smooth
-            #    c1_counts[item] += w
-            #    c1_total += w
         c1_dist = np.array(
             [v for k, v in sorted(c1_counts.items(), key=lambda x: x[0])]
         ) / c1_total

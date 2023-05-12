@@ -108,7 +108,8 @@ class AbstractConstraint(ABC):
                 if isinstance(s, list):
                     return [(i, w) for s_, w in zip(s, weights) for i in s_]
                 elif isinstance(s, set):
-                    return [(s_, w) for s_, w in zip(s, weights)]
+                    assert len(weights) == 1, f"Length of {weights} was {len(weights)}, but expected 1."
+                    return [(s_, weights[0]) for s_ in s]
             else:
                 if isinstance(s, list):
                     return [(i, 1.0) for s_ in s for i in s_]
