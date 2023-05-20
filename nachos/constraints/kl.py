@@ -1,7 +1,6 @@
 from typing import Union, Generator, Optional
 from nachos.constraints.abstract_constraint import AbstractConstraint
 from nachos.constraints import register
-from itertools import chain
 import numpy as np
 
 

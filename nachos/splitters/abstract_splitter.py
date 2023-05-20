@@ -20,5 +20,8 @@ class AbstractSplitter(ABC):
         raise NotImplementedError
         pass
 
-    def score(self, u: Dataset, s: Split) -> float:
-        return self.constraint_fn(u, s)
+    def score(self, u: Dataset, s: Split, all_scores: bool = False) -> float:
+        if not all_scores:
+            return self.constraint_fn(u, s)['total']
+        else:
+            return self.constraint_fn(u, s) 

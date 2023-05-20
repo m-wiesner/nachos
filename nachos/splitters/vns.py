@@ -83,13 +83,14 @@ class VNS(AbstractSplitter):
         # Draw the first candidate randomly
         indices, split = d.draw_random_split()
         split_collapsed = collapse_factored_split(split)
-        score = self.score(d, split_collapsed)
+        constraint_scores = self.score(d, split_collapsed, all_scores=True)
+        score = constraint_scores['total']
         scores = []
         print(f"Iter 0: Best Score: {score:0.4f}")
         iter_indices = []
         # Repeat the VNS algorithm steps for up to max_iter iterations
         for iter_num in tqdm(range(self.max_iter)):
-            scores.append(score)
+            scores.append(constraint_scores)
             iter_indices.append(indices)
             # First draw a random point from the neighbor around the current
             # split. We will try to optimize starting from this random point
@@ -98,8 +99,6 @@ class VNS(AbstractSplitter):
             # points in the neighborhood. We will try this up to self.K times
             # before just incrementing the iteration number.
             for k in range(1, self.K+1):
-                #if k > 1:
-                #    print(f"K: {k}")
                 # Get a random split (shake_split) selected from the
                 # neighborhood of the current split (split)
                 shake_indices, shake_split = d.shake(indices, split, k)
@@ -114,8 +113,6 @@ class VNS(AbstractSplitter):
                 # self.get_neighborhood for more details about how we form the
                 # neighborhoods.
                 for l in range(1, self.L+1):
-                    #if l > 1:
-                    #    print(f"L: {l}")
                     # Find the smallest cost neighbor in the neighborhood of l
                     neighborhood = d.get_neighborhood(
                         shake_indices, shake_split, l, 
@@ -138,6 +135,7 @@ class VNS(AbstractSplitter):
                 if best_score < score: 
                     split = best_split
                     collapsed_split = collapse_factored_split(split)
+                    constraint_scores = self.score(d, collapsed_split, all_scores=True)
                     for s in collapsed_split:
                         stats = self.constraint_fn.stats(d, s)
                         print(f'Stats: {stats}')

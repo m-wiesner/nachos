@@ -71,17 +71,18 @@ class MinNodeCut(AbstractSplitter):
 
         # Initialize some values
         best_split = d.draw_random_node_cut()
-        best_score = self.score(d, best_split)
+        constraint_scores = self.score(d, best_split, all_scores=True)
+        best_score = constraint_scores['total']
         print(f"Iter 0: Best Score: {best_score:0.4f}")
-        scores = [best_score]
-
+        scores = []
         # Try up to max_iter number of st cuts
         for iter_num in tqdm(range(self.max_iter)):
+            scores.append(constraint_scores)
             split = d.draw_random_node_cut()
-            score = self.score(d, split)
+            constraint_scores = self.score(d, split, all_scores=True)
+            scores = constraint_score['total']
             if score < best_score:
                 best_score = score
                 print(f"Iter {iter_num}: Best Score: {best_score:0.4f}")
-                scores.append(best_score)
                 best_split = split
         return (best_split, scores)

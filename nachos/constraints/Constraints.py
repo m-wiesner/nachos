@@ -55,10 +55,17 @@ class Constraints(object):
                 [u.get_constraints(subset=s[0], n=m) for m in range(len(u.constraint_idxs))],
                 [u.get_constraints(subset=s[1], n=m) for m in range(len(u.constraint_idxs))],
             )
-            return sum(
-                w*fn(f, g, weights1=w1, weights2=w2)
-                for w, fn, f, g in constraints_zipped
-            )
+            scores = {u.field_names[u.constraint_idxs[i]]: w*fn(f, g, weights1=w1, weights2=w2)
+                for i, (w, fn, f, g) in enumerate(constraints_zipped)}
+
+            scores['total'] = sum(scores.values())
+            #print(scores)
+            #return scores['total']
+            return scores 
+            #sum(scores.values())
+            #    w*fn(f, g, weights1=w1, weights2=w2)
+            #    for w, fn, f, g in constraints_zipped
+            #)
        
         subset_constraints = u.get_constraints(subset=s[0], n=n)
         # not_subset here means the complement of subset. i.e., the points

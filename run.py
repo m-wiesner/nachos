@@ -87,8 +87,8 @@ def main(args):
     # This is where most of the work happens
     out = splitter(data_eg)
     if config['splitter'] == 'vns':
-        split, scores, indices = out
-        
+        split, constraint_scores, indices = out
+        scores = [c['total'] for c in constraint_scores]
         with open(odir / 'indices.json', 'w') as f:
             json.dump(indices, f, indent=4)
 
@@ -117,12 +117,17 @@ def main(args):
         plt.xscale('log')
         plt.savefig(f'{str(odir)}/scores.png')
     else:
-        split, scores, = out
+        split, constraint_scores, = out
+        scores = [c['total'] for c in constraint_scores]
 
     # Print final score out to file 
     with open(odir / 'scores.json', 'w') as f:
         json.dump(scores, f, indent=4)
-          
+    
+    # Also dump all the final constraint scores to a file
+    with open(odir / 'constraint_scores.json', 'w') as f:
+        json.dump(constraint_scores, f, indent=4)
+
     # The rest is just printing out the partitions and associated statistics 
     test_sets = data_eg.make_overlapping_test_sets(split)
     for s_idx, s in enumerate(split):

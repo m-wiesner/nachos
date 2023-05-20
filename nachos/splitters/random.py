@@ -84,16 +84,18 @@ class Random(AbstractSplitter):
         # Initialize some values
         indices, best_split = d.draw_random_split()
         split = collapse_factored_split(best_split) 
-        best_score = self.score(d, split) 
+        constraint_scores = self.score(d, split, all_scores=True) 
+        best_score = constraint_scores['total']
         print(f"Iter 0: Best Score: {best_score:0.4f}")
-        scores = [best_score]
+        scores = []
         for iter_num in tqdm(range(self.max_iter)):
+            scores.append(constraint_scores)
             indices, split = d.draw_random_split()
             collapsed_split = collapse_factored_split(split)
-            score = self.score(d, collapsed_split) 
+            constraint_scores = self.score(d, collapsed_split, all_scores=True)
+            score = constraint_scores['total']
             if score < best_score:
                 best_score = score
                 print(f"Iter {iter_num}: Best Score: {best_score:0.4f}")
-                scores.append(best_score)
                 best_split = split
         return (collapse_factored_split(best_split), scores)

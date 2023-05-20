@@ -21,9 +21,10 @@ def main(args):
         else:
             q.put(worst_item) 
     
-    for item in q.queue:
+    while not q.empty():
+        item = q.get()
         print('======================================')
-        print(f'{item[1]} -- {item[0]}')
+        print(f'{item[1]} -- {-item[0]}')
         print('------------------------------')
         with open(Path(item[1]).parent / 'stats', encoding='utf-8') as f:
             for l in f:
