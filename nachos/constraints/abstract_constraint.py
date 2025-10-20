@@ -34,7 +34,7 @@ class AbstractConstraint(ABC):
     ) -> float:
         raise NotImplementedError
     
-    def reduce(self, s: Union[set,list], weights: Optional[list] = None) -> float:
+    def reduce(self, s: Union[set,list], weights: Optional[list] = None):
         '''
             Summary:
                 When a constraint is set valued, how do we reduce the
@@ -67,7 +67,7 @@ class AbstractConstraint(ABC):
             :type weights: list[float]
 
             :return: the reduced valued
-            :rtype: float
+            :rtype: float or other object
         '''
         if self.reduction == 'mean':
             if weights is not None:
@@ -117,3 +117,4 @@ class AbstractConstraint(ABC):
                     return [(s_, 1.0) for s_ in s]
         if self.reduction == 'none':
             return s
+

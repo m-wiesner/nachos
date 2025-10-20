@@ -61,13 +61,14 @@ class LhotseLoader(object):
                 information.
         '''
         # First load the lhotse supervisions
-        from lhotse import RecordingSet, SupervisionSet
-        sups = SupervisionSet.from_segments([])
-        supids = set()
-        for sup in supervisions:
-            new_sups = SupervisionSet.from_jsonl(sup)
-            sups = sups + new_sups.filter(lambda s: s.id not in supids)
-            for s in new_sups:
-                supids.add(s.id)
+        from lhotse import RecordingSet, SupervisionSet, load_manifest_lazy
+        sups = load_manifest_lazy(supervisions[0])
+        #sups = SupervisionSet.from_segments([])
+        #supids = set()
+        #for sup in supervisions:
+        #    new_sups = load_manifest_lazy(sup)
+        #    sups = sups + new_sups.filter(lambda s: s.id not in supids)
+        #    for s in new_sups:
+        #        supids.add(s.id)
         
         return Dataset.from_supervisions_and_config(sups, config)

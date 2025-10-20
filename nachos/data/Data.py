@@ -95,12 +95,12 @@ class Dataset(object):
         '''
         # Define the fields to extract from the lhotse manifests
         lhotse_fields = config['lhotse_fields']
+        lhotse_reductions = config['lhotse_field_reductions']
         grouping_field = config['lhotse_groupby']
-        groups = groupby(supervisions, lambda s: getattr(s, grouping_field))
-        field_names = [grouping_field, *lhotse_fields, 'duration', 'fraction']
         return cls.from_supervisions(
             supervisions,
             lhotse_fields,
+            lhotse_reductions,
             config['factor_idxs'],
             config['constraint_idxs'],
             groupby_field=grouping_field,
@@ -110,6 +110,7 @@ class Dataset(object):
     def from_supervisions(cls, 
         supervisions,
         fields: List[str],
+        reductions: List[str],
         factor_idxs: List[int],
         constraint_idxs: List[int],
         groupby_field: str = 'recording_id',
@@ -129,24 +130,50 @@ class Dataset(object):
             :param constraint_idxs: A list of integers specifying which of the
                 fields to use as constraints.
             :type constraint_idxs: List[int]
-            :type config: str
+            :param groupby_field: The fieldname on which records will be grouped
+            :type groupby_field: str
+            :param max_num_groups: The maximum number of groups to consider.
+                -1 means that there is no max.
+            :type max_num_groups: int
             :return: A dataset class from the supervisions
             :rtype: Dataset
         '''
         # Define the fields to extract from the lhotse manifests
-        groups = groupby(supervisions, lambda s: getattr(s, groupby_field))
-        field_names = [groupby_field, *fields, 'duration', 'fraction']
+        print("Grouping manifest entries")
+        try:
+            groups = groupby(supervisions, lambda s: getattr(s, groupby_field))
+        except AttributeError:
+            groups = groupby(supervisions, lambda s: getattr(s, 'custom')[grouping_field])
+    
+        groups_ = groupby(
+            sorted(((i, k, list(g)) for i, (k, g) in enumerate(groups)), key=lambda x: x[0]),
+            lambda x: x[1]
+        )
+        import pdb; pdb.set_trace()
+        field_names = ['id', *fields, 'duration', 'quantity', 'fraction']
         data = []
         factors = {}
-        for k, g in groups:
+        components = {} 
+        for k, g in tqdm(groups_, "Making factors ..."):
             g_list = list(g)
+            components[k] = set([k for _, k, _ in g_list])
             factors[k] = [
-                set([getattr(s, f) for s in g_list]) for f in fields
+                reduce_(
+                    [
+                        {getattr(s, f) if hasattr(s, f) else getattr(s, 'custom')[f]} for _, _, g_ in g_list
+                        for s in g_
+                    ], reduction=reduction
+                ) for f, reduction in zip(fields, reductions)
             ]
-            factors[k].append(set([sum(s.duration for s in g_list)])) 
-        total_duration = sum(sum(f[-1]) for f in factors.values())
-        for k in factors:
-            factors[k].append(set([sum(factors[k][-1]) / total_duration]))
+            #factors[k] = [
+            #    set([getattr(s, f) if hasattr(s, f) else getattr(s, 'custom')[f] for _, _, g_ in g_list for s in g_])
+            #    for f in fields
+            #]
+            factors[k].append(set([sum(s.duration for _, _, g_ in g_list for s in g_)])) 
+            factors[k].append(set([sum(len(g_) for _, _, g_ in g_list)]))
+        total_duration = sum(sum(f[-2]) for f in factors.values())
+        for k in tqdm(factors, "Making Dataset ..."):
+            factors[k].append(set([sum(factors[k][-2]) / total_duration]))
             data.append(
                 Data(
                     k,
@@ -154,8 +181,9 @@ class Dataset(object):
                     [next(iter(factors[k][-1]))],
                     field_names=field_names,
                 )
-            )     
-        return cls(data, factor_idxs, constraint_idxs)
+            )
+        components_ = [components[k] for k in sorted(components.keys())]
+        return cls(data, factor_idxs, constraint_idxs), components_
 
     
     def __init__(self,
@@ -262,7 +290,7 @@ class Dataset(object):
             Summary:
                 Makes the graph representation of the dataset. This assumes
                 that the graph is undirected, an assumption which we may later
-                break, depending on the kinds of similarity functiosn we will
+                break, depending on the kinds of similarity functions we will
                 ultimately support. It also makes subgraphs corresponding to
                 each individual factor value. This is like the inverted index.
                 You can lookup the neighbors of a factors. The graph and
@@ -339,8 +367,8 @@ class Dataset(object):
                         self.graphs[n][f].add_edge(i, j, capacity=sim)
 
             # Now compute the normal similarity (summing the score across all
-            # factors), and creat the edge in the global graph (that includes
-            # all the data points.
+            # factors), and create the edge in the global graph (that includes
+            # all the data points).
             sim = simfuns(self[i], self[j])
             if sim > 0:
                 G.add_edge(i, j, capacity=sim)
@@ -486,7 +514,7 @@ class Dataset(object):
                 seen for the n-th constraint.
         '''
         inverted_index = {n: {} for n in range(len(self.constraint_idxs))}
-        for fid, x in self.constraints.items():
+        for fid, x in tqdm(self.constraints.items(), "Making constraint inverted index ..."):
             for n in range(len(self.constraint_idxs)):
                 for y in x[n]:
                     if isinstance(y, set):
@@ -614,6 +642,7 @@ class Dataset(object):
         # For multilabel problems, there can be overlap between the data points
         # that have selected factors and unselected factors. We need to find
         # this intersection.
+        
         intersection = subset_from_selected_factors.intersection(
             subset_from_unselected_factors
         )
@@ -623,7 +652,6 @@ class Dataset(object):
 
         # not_subset is our name for the complement of subset.
         not_subset = subset_from_unselected_factors.difference(intersection)
-
         return (subset_idx, (subset, not_subset,))
 
 
@@ -735,9 +763,12 @@ class Dataset(object):
                 :rtype: Generator[FactoredSplit]
             '''
             # Initialize neighbors.
-            neighbors = list(
-                map(lambda x: (x, 1), self.nearby_splits(idxs, split))
-            )
+            neighbors = []
+            for i, x in enumerate(self.nearby_splits(idxs, split)):
+                if i >= max_neighbors:
+                    break;
+                neighbors.append((x, 1))
+                #map(lambda x: (x, 1), self.nearby_splits(idxs, split))
             # For each neighbor we want to retreive all of their neighbors and
             # repeat this process until we have explored up to the l-th degree of
             # connections. Most of this while loop is just adding neighbors to
@@ -748,13 +779,21 @@ class Dataset(object):
             while len(neighbors) > 0 and num_neighbors < max_neighbors:
                 (nearby_idxs, nearby_split), idx_l = neighbors.pop()
                 if idx_l < l:
-                    for x in self.nearby_splits(nearby_idxs, nearby_split):
+                    for i, x in enumerate(self.nearby_splits(nearby_idxs, nearby_split)):
+                        if i >= max_neighbors:
+                            break;
                         neighbors.append((x, idx_l + 1))
                 else:
                     num_neighbors += 1
                     yield (nearby_idxs, nearby_split)
 
-    def shake(self, idxs: List[int], split: FactoredSplit, k: int) -> Tuple[int, FactoredSplit]:
+    def shake(
+        self,
+        idxs: List[int],
+        split: FactoredSplit,
+        k: int,
+        max_neighbors: int = 2000,
+    ) -> Tuple[int, FactoredSplit]:
         '''
             Summary:
                 Return a random split from the neighborhood around split.
@@ -775,7 +814,9 @@ class Dataset(object):
             :return: The randomly selected split from the neighborhood of split
             :rtype: FactoredSplit
         '''
-        generator = self.get_neighborhood(idxs, split, k)
+        generator = self.get_neighborhood(
+            idxs, split, k, max_neighbors=max_neighbors,
+        )
         return next(generator, None)
 
     def draw_random_node_cut(self) -> Split:
@@ -1043,4 +1084,30 @@ def new_from_components(d: Dataset,
         return dataset, components_ 
     else:
         return d, [set(d.factors.keys())]
+
+
+def reduce_(s: Union[set, list], weights: Optional[list] = None, reduction='concat'):
+    if weights is not None:
+        if isinstance(s, list):
+            #return [(i, w) for s_, w in zip(s, weights) for i in s_]
+            out = [i for s_, w in zip(s, weights) for i in s_]
+        elif isinstance(s, set):
+            assert len(weights) == 1, f"Length of {weights} was {len(weights)}, but expected 1."
+            #return [(s_, weights[0]) for s_ in s]
+            out = [s_ for s_ in s]
+        if reduction == 'concat':
+            return [{s} for s in out]
+        elif reduction == 'set':
+            return set(out)
+    else:
+        if isinstance(s, list):
+            #return [(i, 1.0) for s_ in s for i in s_]
+            out = [i for s_ in s for i in s_]
+        elif isinstance(s, set):
+            #return [(s_, 1.0) for s_ in s]
+            out = [s_ for s_ in s]
+        if reduction == 'concat':
+            return [{s} for s in out]
+        elif reduction == 'set':
+            return set(out)
 

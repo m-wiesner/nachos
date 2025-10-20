@@ -24,10 +24,12 @@ def main(args):
     odir = Path(args.odir)
     odir.mkdir(mode=511, parents=True, exist_ok=True)
     config = yaml.safe_load(open(args.config))
+    
     if config['format'] == 'tsv':
         data_eg = TSVLoader.load(args.metadata[0], config)
+        components = None
     elif config['format'] == 'lhotse':
-        data_eg = LhotseLoader.load(args.metadata, config)
+        data_eg, components = LhotseLoader.load(args.metadata, config)
 
     data_eg.make_constraint_inverted_index()
     # For KL divergence, it is probably better to set the vocabulary. It is not
@@ -62,13 +64,13 @@ def main(args):
     config['partition_and_split'] = (partition_file, split) if args.partition_and_split is not None else None
     data_eg.make_constraint_inverted_index()
     splitter = build_splitter(config)
+    import pdb; pdb.set_trace()
     data_eg.make_graph(splitter.sim_fn) 
     
     # If the graph is disconnected, reconstruct the dataset using the
     # components as the factors, keep the original constraints, and use the
     # components themselves as the records. Keep a map from the components
     # back to the original records
-    components = None
     config['use_components'] = False
     if args.use_components:
         if data_eg.is_disconnected():
@@ -85,6 +87,7 @@ def main(args):
     partition = {}
     
     # This is where most of the work happens
+    import pdb; pdb.set_trace()
     out = splitter(data_eg)
     if config['splitter'] == 'vns':
         split, constraint_scores, indices = out
@@ -130,6 +133,7 @@ def main(args):
 
     # The rest is just printing out the partitions and associated statistics 
     test_sets = data_eg.make_overlapping_test_sets(split)
+    import pdb; pdb.set_trace()
     for s_idx, s in enumerate(split):
         for s_item in s:
             if components is not None:

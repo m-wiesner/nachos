@@ -1,0 +1,57 @@
+ID	ConferenceID	SpeakerID	Gender	Age	Topic	Quantity	Fraction
+1000__00868415	1000	00868415	1.0	46~60	family,health,sports,food	1	0.0287
+1000__00868416	1000	00868416	1.0	46~60	family,health,sports,food	1	0.0628
+1001__00868417	1001	00868417	0.0	46~60	family,work,friend,life	1	0.0708
+1001__00868418	1001	00868418	1.0	46~60	family,work,friend,life	1	0.0156
+1003__00868419	1003	00868419	0.0	46~60	social networks,family,food,music	1	0.0448
+1003__00868421	1003	00868421	0.0	16~30	social networks,family,food,music	1	0.0672
+1004__00868421	1004	00868421	1.0	46~60	family,health,marriage,friend	1	0.029
+1004__00868422	1004	00868422	0.0	46~60	family,health,marriage,friend	1	0.0304
+1005__00868422	1005	00868422	0.0	46~60	family,shopping,travel,friend	1	0.0438
+1005__00868423	1005	00868423	0.0	46~60	family,shopping,travel,friend	1	0.0186
+1006__00868423	1006	00868423	0.0	46~60	family,shopping,travel,friend	1	0.0026
+1006__00868424	1006	00868424	0.0	46~60	family,shopping,travel,friend	1	0.0031
+1007__00868427	1007	00868427	0.0	46~60	health,travel,news,life	1	0.0268
+1007__00868428	1007	00868428	0.0	46~60	health,travel,news,life	1	0.0517
+1008__00868429	1008	00868429	0.0	46~60	shopping,friend,life,weather	1	0.0286
+1008__00868430	1008	00868430	0.0	46~60	shopping,friend,life,weather	1	0.0291
+1009__00868432	1009	00868432	0.0	46~60	music,shopping,friend,marriage	1	0.0185
+1009__00868431	1009	00868431	0.0	46~60	music,shopping,friend,marriage	1	0.0059
+1010__00868433	1010	00868433	0.0	46~60	family,travel,life,weather	1	0.0055
+1010__00868434	1010	00868434	0.0	46~60	family,travel,life,weather	1	0.008
+1013__00868440	1013	00868440	0.0	46~60	sports,computer,life,weather	1	0.0049
+1013__00868439	1013	00868439	0.0	46~60	sports,computer,life,weather	1	0.0021
+1017__00868448	1017	00868448	0.0	46~60	music,travel,education,TV	1	0.0039
+1017__00868447	1017	00868447	0.0	46~60	music,travel,education,TV	1	0.0045
+1020__00868453	1020	00868453	0.0	46~60	health,sports,pets,TV	1	0.0064
+1020__00868454	1020	00868454	0.0	31~45	health,sports,pets,TV	1	0.0022
+1023__00868458	1023	00868458	0.0	46~60	family,entertainment,pets,life	1	0.013
+1023__00868459	1023	00868459	0.0	46~60	family,entertainment,pets,life	1	0.007
+1026__00868464	1026	00868464	0.0	46~60	music,education,friend,TV	1	0.0095
+1026__00868465	1026	00868465	0.0	46~60	music,education,friend,TV	1	0.0056
+1029__00868470	1029	00868470	0.0	46~60	movie,friend,news,TV	1	0.0173
+1029__00868471	1029	00868471	0.0	46~60	movie,friend,news,TV	1	0.0199
+1032__00868476	1032	00868476	0.0	31~45	social networks,computer,celebrity,life	1	0.0143
+1032__00868477	1032	00868477	0.0	31~45	social networks,computer,celebrity,life	1	0.0177
+1035__00868482	1035	00868482	0.0	31~45	music,movie,social networks,computer	1	0.0163
+1035__00868483	1035	00868483	0.0	31~45	music,movie,social networks,computer	1	0.0307
+1036__00868485	1036	00868485	0.0	16~30	movie,social networks,computer,celebrity	1	0.0001
+1036__00868484	1036 	00868484	0.0	16~30	movie,social networks,computer,celebrity	1	0.0001
+1038__00868488	1038	00868488	1.0	16~30	music,social networks,computer,celebrity	1	0.0042
+1038__00868489	1038	00868489	0.0	46~60	music,social networks,computer,celebrity	1	0.006
+1041__00868490	1041	00868490	0.0	46~60	movie,social networks,computer,celebrity	1	0.0053
+1041__00868491	1041	00868491	0.0	31~45	movie,social networks,computer,celebrity	1	0.0047
+1044__00868500	1044	00868500	0.0	31~45	movie,social networks,entertainment,computer	1	0.0055
+1044__00868501	1044	00868501	1.0	46~60	movie,social networks,entertainment,computer	1	0.009
+1047__00868517	1047	00868517	0.0	16~30	music,social networks,entertainment,computer	1	0.0139
+1047__00868518	1047	00868518	0.0	16~30	music,social networks,entertainment,computer	1	0.0152
+1050__00868506	1050	00868506	1.0	16~30	movie,social networks,entertainment,pets	1	0.0168
+1050__00868507	1050	00868507	1.0	16~30	movie,social networks,entertainment,pets	1	0.0465
+1053__00868512	1053	00868512	0.0	46~60	family,travel,work,marriage	1	0.0086
+1053__00868513	1053	00868513	0.0	46~60	family,travel,work,marriage	1	0.0105
+1056__00868527	1056	00868527	0.0	31~45	family,food,pets,marriage	1	0.014
+1056__00868528	1056	00868528	0.0	16~30	family,food,pets,marriage	1	0.0018
+1059__00868539	1059	00868539	0.0	31~45	health,sports,work,marriage	1	0.0202
+1059__00868540	1059	00868540	0.0	16~30	health,sports,work,marriage	1	0.0111
+1060__00868535	1060	00868535	0.0	46~60	music,work,education,TV	1	0.022
+1060__00868536	1060	00868536	0.0	46~60	music,work,education,TV	1	0.0174

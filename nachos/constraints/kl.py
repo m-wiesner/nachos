@@ -117,6 +117,7 @@ class KL(AbstractConstraint):
         iterator2 = zip(weights2, c2) if weights2 is not None else zip([1.0]*len(c2), c2)
         for w, item in iterator1:
             item_ = self.reduce(item, weights=w)
+            #print(f"{item} ====== {item_}")
             for i, w_ in item_:
                 # if i wasn't seen in the vocab,
                 # add it with count of self.smooth to both c1 and c2 counts

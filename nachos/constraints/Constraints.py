@@ -45,8 +45,10 @@ class Constraints(object):
             :rtype: float
         '''
         if len(s[0]) == 0 or len(s[1]) == 0:
-            return WORST_SCORE
-                     
+            scores = {i: WORST_SCORE for i in u.field_names}
+            scores['total'] = WORST_SCORE
+            return scores
+             
         w1 = list(u.get_weights(s[0]))
         w2 = list(u.get_weights(s[1]))
         if n is None:

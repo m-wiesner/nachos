@@ -1,0 +1,41 @@
+format: tsv
+factor_types: [str, str, float, str, str, float, float]
+splitter: vns
+factor_idxs: [1, 2]
+factor_weights: [1.0, 1.0]
+constraint_idxs: [3,3,4,5,6]
+constraint_weights: [2.0, 0.5, 1.0, 1.0, 5.0,]
+similarity_functions:
+  - set_intersection
+  - set_intersection
+
+constraints:
+  - {name: "mean_tuple", values: [0.224, 0.224], reduction: "mean"}
+  - {name: "mean", value: None, reduction: "mean"}
+  - {name: "kl_tuple", values: {smooth: 0.00001, direction: 'symmetric', dist: [[0.19, 0.05, 0.76], [0.19, 0.05, 0.76]]}, reduction: "concat"}
+  - {name: "kl_tuple", values: {
+        smooth: 0.00001,
+        direction: 'symmetric',
+        dist: [
+              [0.03001227, 0.0082621 , 0.01238565, 0.03001227, 0.04678655,
+               0.07649168, 0.01022512, 0.0855836 , 0.06501244, 0.13540254,
+               0.02953466, 0.05504115, 0.0493218 , 0.06501244, 0.05700416,
+               0.01931704, 0.05504115, 0.00413105, 0.06501244, 0.00413105,
+               0.09627882],
+              [0.03001227, 0.0082621 , 0.01238565, 0.03001227, 0.04678655,
+               0.07649168, 0.01022512, 0.0855836 , 0.06501244, 0.13540254,
+               0.02953466, 0.05504115, 0.0493218 , 0.06501244, 0.05700416,
+               0.01931704, 0.05504115, 0.00413105, 0.06501244, 0.00413105,
+               0.09627882],
+              ]
+      }, reduction: "concat"
+    }
+  - {name: "sum_tuple", values: [0.6667, 0.3333], reduction: "min"}
+
+seed: 0
+max_iter: 4000
+
+num_shake_neighborhoods: 4
+num_search_neighborhoods: 8
+max_neighbors: 1000
+check_complete: False

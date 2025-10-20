@@ -1,0 +1,24 @@
+format: tsv
+factor_types: [str, str, float, str, str, float, float]
+splitter: vns
+factor_idxs: [1, 2]
+factor_weights: [1.0, 1.0]
+constraint_idxs: [3,4,5,6]
+constraint_weights: [2.0, 1.0, 1.0, 5.0,]
+similarity_functions:
+  - set_intersection
+  - set_intersection
+
+constraints:
+  - {name: "mean", values: None, reduction: "mean"}
+  - {name: "kl", values: {smooth: 0.00001, direction: 'symmetric'}, reduction: "concat"}
+  - {name: "kl", values: {smooth: 0.00001, direction: 'symmetric'}, reduction: "concat"}
+  - {name: "sum_tuple", values: {values: [0.6667, 0.3333], power: 2}, reduction: "min"}
+
+seed: 0
+max_iter: 4000
+
+num_shake_neighborhoods: 4
+num_search_neighborhoods: 8
+max_neighbors: 1000
+check_complete: False

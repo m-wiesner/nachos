@@ -28,5 +28,5 @@ if [[ ! -z $partition_and_split ]]; then
   partition_flag="--partition-and-split ${partition_and_split}"
 fi
 
-PYTHONUNBUFFERED=1 python run.py ${use_components_flag} ${partition_flag} \
+echo PYTHONUNBUFFERED=1 python run.py ${use_components_flag} ${partition_flag} \
   --seed ${seed} ${odir} ${config} ${tsv}

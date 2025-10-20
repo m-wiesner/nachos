@@ -83,6 +83,7 @@ class VNS(AbstractSplitter):
         # Draw the first candidate randomly
         indices, split = d.draw_random_split()
         split_collapsed = collapse_factored_split(split)
+        import pdb; pdb.set_trace()
         constraint_scores = self.score(d, split_collapsed, all_scores=True)
         score = constraint_scores['total']
         scores = []
@@ -101,7 +102,9 @@ class VNS(AbstractSplitter):
             for k in range(1, self.K+1):
                 # Get a random split (shake_split) selected from the
                 # neighborhood of the current split (split)
-                shake_indices, shake_split = d.shake(indices, split, k)
+                shake_indices, shake_split = d.shake(
+                    indices, split, k, max_neighbors=self.max_neighbors,
+                )
                 shake_split_collapsed = collapse_factored_split(shake_split)
                 shake_score = self.score(d, shake_split_collapsed)
                 # We will search exhaustively among candidates in the
